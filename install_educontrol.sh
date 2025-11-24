@@ -228,32 +228,39 @@ EOF
     fi
 
     log_success "Archivo .env configurado correctamente"
+
+    # ========================================
+    # 9. CREAR DIRECTORIOS NECESARIOS
+    # ========================================
+    log_info "Creando directorios para volúmenes..."
+    mkdir -p postgresql redis backend/staticfiles backend/media frontend/nginx/conf.d frontend/staticfiles frontend/letsencrypt
+    log_success "Directorios creados"
+
+    # ========================================
+    # 10. MOSTRAR RESUMEN
+    # ========================================
+    echo ""
+    echo "=========================================="
+    echo "RESUMEN DE CONFIGURACIÓN"
+    echo "=========================================="
+    echo "Directorio de instalación: $INSTALL_DIR"
+    echo "Servidor EduControl: $SERVER_IP"
+    echo "Servidor LDAP: $LDAP_SERVER"
+    echo "Contraseña PostgreSQL: [GENERADA ALEATORIAMENTE]"
+    echo "Django Secret Key: [GENERADA ALEATORIAMENTE]"
+    echo "=========================================="
+    echo ""
 else
     log_warning "El archivo .env ya existe. Se omite la configuración."
     log_info "Si deseas reconfigurar, elimina el archivo .env y ejecuta el script nuevamente."
+    
+    # ========================================
+    # 9. CREAR DIRECTORIOS NECESARIOS
+    # ========================================
+    log_info "Creando directorios para volúmenes..."
+    mkdir -p postgresql redis backend/staticfiles backend/media frontend/nginx/conf.d frontend/staticfiles frontend/letsencrypt
+    log_success "Directorios creados"
 fi
-
-# ========================================
-# 9. CREAR DIRECTORIOS NECESARIOS
-# ========================================
-log_info "Creando directorios para volúmenes..."
-mkdir -p postgresql redis backend/staticfiles backend/media frontend/nginx/conf.d frontend/staticfiles frontend/letsencrypt
-log_success "Directorios creados"
-
-# ========================================
-# 10. MOSTRAR RESUMEN
-# ========================================
-echo ""
-echo "=========================================="
-echo "RESUMEN DE CONFIGURACIÓN"
-echo "=========================================="
-echo "Directorio de instalación: $INSTALL_DIR"
-echo "Servidor EduControl: $SERVER_IP"
-echo "Servidor LDAP: $LDAP_SERVER"
-echo "Contraseña PostgreSQL: [GENERADA ALEATORIAMENTE]"
-echo "Django Secret Key: [GENERADA ALEATORIAMENTE]"
-echo "=========================================="
-echo ""
 
 # ========================================
 # 11. CONFIRMAR INICIO DE CONTENEDORES
