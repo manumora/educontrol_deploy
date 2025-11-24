@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: educontrol_postgres
+    image: postgres:15
+    restart: always
+    volumes:
+      - ./postgresql:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - educontrol-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: educontrol_redis
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - ./redis:/data
+    networks:
+      - educontrol-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    container_name: educontrol_backend
+    image: manumora/educontrol-backend:latest
+    restart: always
+    volumes:
+      - ./backend/staticfiles:/app/backend/staticfiles
+      - ./backend/media:/app/backend/media
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
+      DJANGO_DEBUG: ${DJANGO_DEBUG}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      REDIS_URL: redis://redis:6379/0
+      AUTH_LDAP_SERVER_URI: ${AUTH_LDAP_SERVER}
+      AUTH_LDAP_BIND_PASSWORD: ${AUTH_LDAP_PASSWORD}
+      EMAIL_BACKEND: ${EMAIL_BACKEND}
+      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
+      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - educontrol-network
+
+  frontend:
+    container_name: educontrol_frontend
+    image: manumora/educontrol-frontend:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./frontend/nginx/conf.d:/etc/nginx/conf.d
+      - ./frontend/staticfiles:/static_files
+      - ./frontend/letsencrypt:/etc/letsencrypt
+    depends_on:
+      - backend
+    networks:
+      - educontrol-network
+
+networks:
+  educontrol-network:
+    driver: bridge
