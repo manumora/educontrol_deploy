@@ -106,7 +106,7 @@ fi
 # ========================================
 # 3. CREAR CARPETA EN RAÍZ
 # ========================================
-log_info "Creando directorio /docker..."
+log_info "Creando directorio /docker/educontrol"
 INSTALL_DIR="/docker/educontrol"
 
 if [ -d "$INSTALL_DIR" ]; then
@@ -130,17 +130,10 @@ log_info "Descargando docker-compose.yaml..."
 curl -fsSL "${REPO_URL}/docker-compose.yaml" -o docker-compose.yaml
 log_success "docker-compose.yaml descargado"
 
-# Descargar env.example si no existe .env
+# Crear .env si no existe
 if [ ! -f ".env" ]; then
-    log_info "Descargando env.example..."
-    curl -fsSL "${REPO_URL}/env.example" -o env.example
-    log_success "env.example descargado"
-
-    # ========================================
-    # 5. RENOMBRAR env.example A .env
-    # ========================================
-    log_info "Creando archivo de configuración .env..."
-    cp env.example .env
+    log_info "Descargando plantilla de configuración .env..."
+    curl -fsSL "${REPO_URL}/env.example" -o .env
     log_success "Archivo .env creado"
 
     # ========================================
