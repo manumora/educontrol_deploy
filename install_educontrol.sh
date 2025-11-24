@@ -188,19 +188,31 @@ if [ ! -f ".env" ]; then
     # ========================================
     log_info "Configurando archivo .env..."
 
-    # Escapar caracteres especiales para sed
-    POSTGRES_PASSWORD_ESCAPED=$(printf '%s\n' "$POSTGRES_PASSWORD" | sed 's:[\\/&]:\\&:g;$!s/$/\\/')
-    DJANGO_SECRET_KEY_ESCAPED=$(printf '%s\n' "$DJANGO_SECRET_KEY" | sed 's:[\\/&]:\\&:g;$!s/$/\\/')
-    LDAP_PASSWORD_ESCAPED=$(printf '%s\n' "$LDAP_PASSWORD" | sed 's:[\\/&]:\\&:g;$!s/$/\\/')
-
-    # Reemplazar valores en .env usando un delimitador diferente
-    sed -i.bak "s#POSTGRES_PASSWORD=educontrol_secure_password#POSTGRES_PASSWORD=${POSTGRES_PASSWORD_ESCAPED}#g" .env
-    sed -i.bak "s#DJANGO_SECRET_KEY=change-this-to-a-random-secret-key-in-production#DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY_ESCAPED}#g" .env
-    sed -i.bak "s#DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 your-domain.com#DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 ${SERVER_IP}#g" .env
-    sed -i.bak "s#CSRF_TRUSTED_ORIGINS=https://your-domain.com http://localhost:3000#CSRF_TRUSTED_ORIGINS=http://${SERVER_IP} https://${SERVER_IP}#g" .env
-    sed -i.bak "s#CORS_ALLOWED_ORIGINS=https://your-domain.com http://localhost:3000#CORS_ALLOWED_ORIGINS=http://${SERVER_IP} https://${SERVER_IP}#g" .env
-    sed -i.bak "s#AUTH_LDAP_SERVER=your-ldap-server#AUTH_LDAP_SERVER=${LDAP_SERVER}#g" .env
-    sed -i.bak "s#AUTH_LDAP_PASSWORD=your_ldap_password#AUTH_LDAP_PASSWORD=${LDAP_PASSWORD_ESCAPED}#g" .env
+    # Usar awk para reemplazar valores de forma segura con cualquier carácter especial
+    awk -v pg_pass="$POSTGRES_PASSWORD" \
+        -v dj_key="$DJANGO_SECRET_KEY" \
+        -v server_ip="$SERVER_IP" \
+        -v ldap_srv="$LDAP_SERVER" \
+        -v ldap_pass="$LDAP_PASSWORD" '
+    {
+        if ($0 ~ /^POSTGRES_PASSWORD=/) {
+            print "POSTGRES_PASSWORD=" pg_pass
+        } else if ($0 ~ /^DJANGO_SECRET_KEY=/) {
+            print "DJANGO_SECRET_KEY=" dj_key
+        } else if ($0 ~ /^DJANGO_ALLOWED_HOSTS=/) {
+            print "DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 " server_ip
+        } else if ($0 ~ /^CSRF_TRUSTED_ORIGINS=/) {
+            print "CSRF_TRUSTED_ORIGINS=http://" server_ip " https://" server_ip
+        } else if ($0 ~ /^CORS_ALLOWED_ORIGINS=/) {
+            print "CORS_ALLOWED_ORIGINS=http://" server_ip " https://" server_ip
+        } else if ($0 ~ /^AUTH_LDAP_SERVER=/) {
+            print "AUTH_LDAP_SERVER=" ldap_srv
+        } else if ($0 ~ /^AUTH_LDAP_PASSWORD=/) {
+            print "AUTH_LDAP_PASSWORD=" ldap_pass
+        } else {
+            print $0
+        }
+    }' .env > .env.tmp && mv .env.tmp .env
 
     # Agregar configuración de email si no existe
     if ! grep -q "EMAIL_BACKEND" .env; then
@@ -214,9 +226,6 @@ EMAIL_HOST_USER=
 EMAIL_HOST_PASSWORD=
 EOF
     fi
-
-    # Eliminar archivos de respaldo
-    rm -f .env.bak
 
     log_success "Archivo .env configurado correctamente"
 else
