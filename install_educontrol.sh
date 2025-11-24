@@ -214,19 +214,6 @@ if [ ! -f ".env" ]; then
         }
     }' .env > .env.tmp && mv .env.tmp .env
 
-    # Agregar configuración de email si no existe
-    if ! grep -q "EMAIL_BACKEND" .env; then
-        cat >> .env << EOF
-
-# ========================================
-# CONFIGURACIÓN DE EMAIL
-# ========================================
-EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-EMAIL_HOST_USER=
-EMAIL_HOST_PASSWORD=
-EOF
-    fi
-
     log_success "Archivo .env configurado correctamente"
 
     # ========================================
