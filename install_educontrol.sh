@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script de instalación de EduControl
-# Autor: EduControl Team
+# Autor: Manuel Mora Gordillo
 # Fecha: 2025
 
 set -e  # Detener el script si hay algún error
