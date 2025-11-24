@@ -145,12 +145,23 @@ if [ ! -f ".env" ]; then
     echo "=========================================="
     echo ""
 
-    # IP del servidor EduControl
-    read -p "Ingresa la IP o dominio del servidor donde se alojará EduControl: " SERVER_IP
-    while [ -z "$SERVER_IP" ]; do
-        log_warning "La IP/dominio no puede estar vacía"
-        read -p "Ingresa la IP o dominio del servidor: " SERVER_IP
-    done
+    # Detectar IP del servidor automáticamente
+    log_info "Detectando IP del servidor..."
+    SERVER_IP=$(hostname -I | awk '{print $1}')
+    if [ -z "$SERVER_IP" ]; then
+        # Intento alternativo si hostname -I no funciona
+        SERVER_IP=$(ip route get 1 | awk '{print $7;exit}')
+    fi
+    if [ -z "$SERVER_IP" ]; then
+        log_warning "No se pudo detectar la IP automáticamente"
+        read -p "Ingresa la IP o dominio del servidor manualmente: " SERVER_IP
+        while [ -z "$SERVER_IP" ]; do
+            log_warning "La IP/dominio no puede estar vacía"
+            read -p "Ingresa la IP o dominio del servidor: " SERVER_IP
+        done
+    else
+        log_success "IP del servidor detectada: $SERVER_IP"
+    fi
 
     # IP servidor LDAP
     read -p "Ingresa la IP del servidor LDAP: " LDAP_SERVER
@@ -195,9 +206,9 @@ if [ ! -f ".env" ]; then
         } else if ($0 ~ /^DJANGO_ALLOWED_HOSTS=/) {
             print "DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 " server_ip
         } else if ($0 ~ /^CSRF_TRUSTED_ORIGINS=/) {
-            print "CSRF_TRUSTED_ORIGINS=http://" server_ip " https://" server_ip
+            print "CSRF_TRUSTED_ORIGINS=http://" server_ip ":7579 https://" server_ip ":7579"
         } else if ($0 ~ /^CORS_ALLOWED_ORIGINS=/) {
-            print "CORS_ALLOWED_ORIGINS=http://" server_ip " https://" server_ip
+            print "CORS_ALLOWED_ORIGINS=http://" server_ip ":7579 https://" server_ip ":7579"
         } else if ($0 ~ /^AUTH_LDAP_SERVER=/) {
             print "AUTH_LDAP_SERVER=" ldap_srv
         } else if ($0 ~ /^AUTH_LDAP_PASSWORD=/) {
@@ -274,7 +285,6 @@ echo ""
 echo "4. Las credenciales y configuración están en:"
 echo "   ${INSTALL_DIR}/.env"
 echo ""
-echo "IMPORTANTE: Guarda la contraseña de PostgreSQL en un lugar seguro"
 echo "=========================================="
 
 echo ""
