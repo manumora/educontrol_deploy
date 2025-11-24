@@ -243,49 +243,39 @@ else
 fi
 
 # ========================================
-# 11. CONFIRMAR INICIO DE CONTENEDORES
+# 11. INICIO DE CONTENEDORES
 # ========================================
-read -p "¿Deseas iniciar los contenedores ahora? (s/n): " -n 1 -r
+log_info "Iniciando contenedores de EduControl..."
 echo ""
 
-if [[ $REPLY =~ ^[Ss]$ ]]; then
-    log_info "Iniciando contenedores de EduControl..."
-    echo ""
-    
-    # Descargar imágenes primero
-    log_info "Descargando imágenes de Docker..."
-    docker compose pull
-    
-    # Iniciar contenedores
-    log_info "Levantando servicios..."
-    docker compose up -d
-    
-    echo ""
-    log_success "¡EduControl está iniciando!"
-    echo ""
-    echo "=========================================="
-    echo "PRÓXIMOS PASOS"
-    echo "=========================================="
-    echo "1. Verifica el estado de los contenedores:"
-    echo "   docker compose ps"
-    echo ""
-    echo "2. Verifica los logs si hay algún problema:"
-    echo "   docker compose logs -f"
-    echo ""
-    echo "3. Accede a EduControl en:"
-    echo "   http://${SERVER_IP}:${EDUCONTROL_PORT}/"
-    echo ""
-    echo "4. Las credenciales y configuración están en:"
-    echo "   ${INSTALL_DIR}/.env"
-    echo ""
-    echo "IMPORTANTE: Guarda la contraseña de PostgreSQL en un lugar seguro"
-    echo "=========================================="
-else
-    log_info "Instalación completada sin iniciar contenedores"
-    echo ""
-    echo "Para iniciar EduControl manualmente, ejecuta:"
-    echo "cd $INSTALL_DIR && docker compose up -d"
-fi
+# Descargar imágenes primero
+log_info "Descargando imágenes de Docker..."
+docker compose pull
+
+# Iniciar contenedores
+log_info "Levantando servicios..."
+docker compose up -d
+
+echo ""
+log_success "¡EduControl está iniciando!"
+echo ""
+echo "=========================================="
+echo "PRÓXIMOS PASOS"
+echo "=========================================="
+echo "1. Verifica el estado de los contenedores:"
+echo "   docker compose ps"
+echo ""
+echo "2. Verifica los logs si hay algún problema:"
+echo "   docker compose logs -f"
+echo ""
+echo "3. Accede a EduControl en:"
+echo "   http://${SERVER_IP}:7579/"
+echo ""
+echo "4. Las credenciales y configuración están en:"
+echo "   ${INSTALL_DIR}/.env"
+echo ""
+echo "IMPORTANTE: Guarda la contraseña de PostgreSQL en un lugar seguro"
+echo "=========================================="
 
 echo ""
 log_success "Script de instalación finalizado"
