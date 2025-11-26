@@ -133,11 +133,15 @@ log_info "Descargando docker-compose.yaml..."
 curl -fsSL "${REPO_URL}/docker-compose.yaml" -o docker-compose.yaml
 log_success "docker-compose.yaml descargado"
 
-# Crear .env si no existe
-if [ ! -f ".env" ]; then
-    log_info "Descargando plantilla de configuración .env..."
-    curl -fsSL "${REPO_URL}/env.example" -o .env
-    log_success "Archivo .env creado"
+# Crear .env si no existe (descarga plantilla, pero siempre se pedirá configuración)
+if [ 1 -eq 1 ]; then
+    if [ ! -f ".env" ]; then
+        log_info "Descargando plantilla de configuración .env..."
+        curl -fsSL "${REPO_URL}/env.example" -o .env
+        log_success "Archivo .env creado"
+    else
+        log_warning "El archivo .env ya existe. Se reutilizará y se actualizarán los valores necesarios."
+    fi
 
     # ========================================
     # 6. SOLICITAR DATOS AL USUARIO
@@ -192,12 +196,31 @@ if [ ! -f ".env" ]; then
     fi
 
     # ========================================
-    # 7. GENERAR PASSWORDS ALEATORIOS
+    # 7. GENERAR / CONSERVAR PASSWORDS
     # ========================================
-    log_info "Generando contraseñas seguras..."
-    POSTGRES_PASSWORD=$(generate_password 32)
-    DJANGO_SECRET_KEY=$(generate_django_secret)
-    log_success "Contraseñas generadas"
+    log_info "Generando/actualizando contraseñas seguras..."
+
+    # Si ya hay una contraseña de Postgres distinta a la de ejemplo, la conservamos
+    EXISTING_PG_PASSWORD=$(grep '^POSTGRES_PASSWORD=' .env | cut -d'=' -f2- || true)
+    if [ -n "$EXISTING_PG_PASSWORD" ] && [ "$EXISTING_PG_PASSWORD" != "educontrol_secure_password" ]; then
+        POSTGRES_PASSWORD="$EXISTING_PG_PASSWORD"
+        log_info "Se conserva la contraseña existente de PostgreSQL."
+    else
+        POSTGRES_PASSWORD=$(generate_password 32)
+        log_info "Se ha generado una nueva contraseña de PostgreSQL."
+    fi
+
+    # Para Django, solo generamos una nueva clave si sigue siendo la de ejemplo
+    EXISTING_DJANGO_KEY=$(grep '^DJANGO_SECRET_KEY=' .env | cut -d'=' -f2- || true)
+    if [ -n "$EXISTING_DJANGO_KEY" ] && [ "$EXISTING_DJANGO_KEY" != "change-this-to-a-random-secret-key-in-production" ]; then
+        DJANGO_SECRET_KEY="$EXISTING_DJANGO_KEY"
+        log_info "Se conserva la Django Secret Key existente."
+    else
+        DJANGO_SECRET_KEY=$(generate_django_secret)
+        log_info "Se ha generado una nueva Django Secret Key."
+    fi
+
+    log_success "Contraseñas listas"
 
     # ========================================
     # 8. RELLENAR .env CON LA INFORMACIÓN
