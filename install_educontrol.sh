@@ -204,16 +204,40 @@ if [ ! -f ".env" ]; then
     # ========================================
     log_info "Configurando archivo .env..."
 
-    # Usar sed para reemplazar valores de forma segura
-    sed -i.bak \
-        -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${POSTGRES_PASSWORD}|" \
-        -e "s|^DJANGO_SECRET_KEY=.*|DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}|" \
-        -e "s|^DJANGO_ALLOWED_HOSTS=.*|DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 ${SERVER_IP}|" \
-        -e "s|^CSRF_TRUSTED_ORIGINS=.*|CSRF_TRUSTED_ORIGINS=http://${SERVER_IP}:7579 https://${SERVER_IP}:7579|" \
-        -e "s|^CORS_ALLOWED_ORIGINS=.*|CORS_ALLOWED_ORIGINS=http://${SERVER_IP}:7579 https://${SERVER_IP}:7579|" \
-        -e "s|^AUTH_LDAP_SERVER=.*|AUTH_LDAP_SERVER=${LDAP_SERVER}|" \
-        -e "s|^AUTH_LDAP_PASSWORD=.*|AUTH_LDAP_PASSWORD=${LDAP_PASSWORD}|" \
-        .env
+    # Crear copia de seguridad
+    cp .env .env.bak
+
+    # Usar awk para reemplazar valores de forma segura, incluso con caracteres especiales
+    awk -v pg_pass="$POSTGRES_PASSWORD" \
+        -v dj_key="$DJANGO_SECRET_KEY" \
+        -v server_ip="$SERVER_IP" \
+        -v ldap_srv="$LDAP_SERVER" \
+        -v ldap_pass="$LDAP_PASSWORD" '
+    BEGIN {
+        # Escapar caracteres especiales para printf
+        gsub(/\\/, "\\\\", pg_pass)
+        gsub(/\\/, "\\\\", dj_key)
+        gsub(/\\/, "\\\\", ldap_pass)
+    }
+    {
+        if ($0 ~ /^POSTGRES_PASSWORD=/) {
+            print "POSTGRES_PASSWORD=" pg_pass
+        } else if ($0 ~ /^DJANGO_SECRET_KEY=/) {
+            print "DJANGO_SECRET_KEY=" dj_key
+        } else if ($0 ~ /^DJANGO_ALLOWED_HOSTS=/) {
+            print "DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 " server_ip
+        } else if ($0 ~ /^CSRF_TRUSTED_ORIGINS=/) {
+            print "CSRF_TRUSTED_ORIGINS=http://" server_ip ":7579 https://" server_ip ":7579"
+        } else if ($0 ~ /^CORS_ALLOWED_ORIGINS=/) {
+            print "CORS_ALLOWED_ORIGINS=http://" server_ip ":7579 https://" server_ip ":7579"
+        } else if ($0 ~ /^AUTH_LDAP_SERVER=/) {
+            print "AUTH_LDAP_SERVER=" ldap_srv
+        } else if ($0 ~ /^AUTH_LDAP_PASSWORD=/) {
+            print "AUTH_LDAP_PASSWORD=" ldap_pass
+        } else {
+            print $0
+        }
+    }' .env.bak > .env
 
     log_success "Archivo .env configurado correctamente"
 else
