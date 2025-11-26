@@ -167,20 +167,29 @@ if [ ! -f ".env" ]; then
     fi
 
     # IP servidor LDAP
-    read -p "Ingresa la IP del servidor LDAP: " LDAP_SERVER
-    while [ -z "$LDAP_SERVER" ]; do
-        log_warning "La IP del servidor LDAP no puede estar vacía"
-        read -p "Ingresa la IP del servidor LDAP: " LDAP_SERVER
+    echo ""
+    log_info "Configuración de LDAP"
+    echo ""
+    read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER
+    while [ -z "$LDAP_SERVER" ] || [[ "$LDAP_SERVER" == \#* ]]; do
+        log_warning "La IP/dominio del servidor LDAP no puede estar vacía ni comenzar por '#'"
+        read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER
     done
 
     # Contraseña servidor LDAP
-    read -sp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
+    read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
     echo ""
     while [ -z "$LDAP_PASSWORD" ]; do
         log_warning "La contraseña LDAP no puede estar vacía"
-        read -sp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
+        read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
         echo ""
     done
+
+    # Comprobación extra: no continuar si falta info de LDAP
+    if [ -z "$LDAP_SERVER" ] || [ -z "$LDAP_PASSWORD" ]; then
+        log_error "La configuración de LDAP está incompleta. Abortando."
+        exit 1
+    fi
 
     # ========================================
     # 7. GENERAR PASSWORDS ALEATORIOS
