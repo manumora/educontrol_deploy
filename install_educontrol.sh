@@ -57,11 +57,13 @@ log_success "Usuario root verificado"
 # ========================================
 log_info "Verificando instalación de Docker Compose..."
 
-if command -v docker compose &> /dev/null; then
-    log_success "Docker Compose ya está instalado"
+if docker compose version &> /dev/null; then
+    log_success "Docker Compose (plugin) ya está instalado"
+    DOCKER_COMPOSE_CMD="docker compose"
     docker compose version
 elif command -v docker-compose &> /dev/null; then
     log_success "Docker Compose (versión standalone) ya está instalado"
+    DOCKER_COMPOSE_CMD="docker-compose"
     docker-compose version
 else
     log_warning "Docker Compose no está instalado. Procediendo a instalar..."
@@ -100,6 +102,7 @@ else
     
     chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
     log_success "Docker Compose instalado correctamente"
+    DOCKER_COMPOSE_CMD="docker compose"
     docker compose version
 fi
 
@@ -261,11 +264,11 @@ echo ""
 
 # Descargar imágenes primero
 log_info "Descargando imágenes de Docker..."
-docker compose pull
+$DOCKER_COMPOSE_CMD pull
 
 # Iniciar contenedores
 log_info "Levantando servicios..."
-docker compose up -d
+$DOCKER_COMPOSE_CMD up -d
 
 echo ""
 log_success "¡EduControl está iniciando!"
@@ -274,10 +277,10 @@ echo "=========================================="
 echo "PRÓXIMOS PASOS"
 echo "=========================================="
 echo "1. Verifica el estado de los contenedores:"
-echo "   docker compose ps"
+echo "   $DOCKER_COMPOSE_CMD ps"
 echo ""
 echo "2. Verifica los logs si hay algún problema:"
-echo "   docker compose logs -f"
+echo "   $DOCKER_COMPOSE_CMD logs -f"
 echo ""
 echo "3. Accede a EduControl en:"
 echo "   http://${SERVER_IP}:7579/"
