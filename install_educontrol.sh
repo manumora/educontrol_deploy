@@ -133,18 +133,14 @@ log_info "Descargando docker-compose.yaml..."
 curl -fsSL "${REPO_URL}/docker-compose.yaml" -o docker-compose.yaml
 log_success "docker-compose.yaml descargado"
 
-# Crear .env si no existe (descarga plantilla, pero siempre se pedirá configuración)
-if [ 1 -eq 1 ]; then
-    if [ ! -f ".env" ]; then
-        log_info "Descargando plantilla de configuración .env..."
-        curl -fsSL "${REPO_URL}/env.example" -o .env
-        log_success "Archivo .env creado"
-    else
-        log_warning "El archivo .env ya existe. Se reutilizará y se actualizarán los valores necesarios."
-    fi
-
+# Crear .env si no existe
+if [ ! -f ".env" ]; then
+    log_info "Descargando plantilla de configuración .env..."
+    curl -fsSL "${REPO_URL}/env.example" -o .env
+    log_success "Archivo .env creado"
+    
     # ========================================
-    # 6. SOLICITAR DATOS AL USUARIO
+    # 5. SOLICITAR DATOS AL USUARIO
     # ========================================
     echo ""
     echo "=========================================="
@@ -196,100 +192,44 @@ if [ 1 -eq 1 ]; then
     fi
 
     # ========================================
-    # 7. GENERAR / CONSERVAR PASSWORDS
+    # 6. GENERAR PASSWORDS
     # ========================================
-    log_info "Generando/actualizando contraseñas seguras..."
-
-    # Si ya hay una contraseña de Postgres distinta a la de ejemplo, la conservamos
-    EXISTING_PG_PASSWORD=$(grep '^POSTGRES_PASSWORD=' .env | cut -d'=' -f2- || true)
-    if [ -n "$EXISTING_PG_PASSWORD" ] && [ "$EXISTING_PG_PASSWORD" != "educontrol_secure_password" ]; then
-        POSTGRES_PASSWORD="$EXISTING_PG_PASSWORD"
-        log_info "Se conserva la contraseña existente de PostgreSQL."
-    else
-        POSTGRES_PASSWORD=$(generate_password 32)
-        log_info "Se ha generado una nueva contraseña de PostgreSQL."
-    fi
-
-    # Para Django, solo generamos una nueva clave si sigue siendo la de ejemplo
-    EXISTING_DJANGO_KEY=$(grep '^DJANGO_SECRET_KEY=' .env | cut -d'=' -f2- || true)
-    if [ -n "$EXISTING_DJANGO_KEY" ] && [ "$EXISTING_DJANGO_KEY" != "change-this-to-a-random-secret-key-in-production" ]; then
-        DJANGO_SECRET_KEY="$EXISTING_DJANGO_KEY"
-        log_info "Se conserva la Django Secret Key existente."
-    else
-        DJANGO_SECRET_KEY=$(generate_django_secret)
-        log_info "Se ha generado una nueva Django Secret Key."
-    fi
-
-    log_success "Contraseñas listas"
+    log_info "Generando contraseñas seguras..."
+    POSTGRES_PASSWORD=$(generate_password 32)
+    DJANGO_SECRET_KEY=$(generate_django_secret)
+    log_success "Contraseñas generadas"
 
     # ========================================
-    # 8. RELLENAR .env CON LA INFORMACIÓN
+    # 7. RELLENAR .env CON LA INFORMACIÓN
     # ========================================
     log_info "Configurando archivo .env..."
 
-    # Usar awk para reemplazar valores de forma segura con cualquier carácter especial
-    awk -v pg_pass="$POSTGRES_PASSWORD" \
-        -v dj_key="$DJANGO_SECRET_KEY" \
-        -v server_ip="$SERVER_IP" \
-        -v ldap_srv="$LDAP_SERVER" \
-        -v ldap_pass="$LDAP_PASSWORD" '
-    {
-        if ($0 ~ /^POSTGRES_PASSWORD=/) {
-            print "POSTGRES_PASSWORD=" pg_pass
-        } else if ($0 ~ /^DJANGO_SECRET_KEY=/) {
-            print "DJANGO_SECRET_KEY=" dj_key
-        } else if ($0 ~ /^DJANGO_ALLOWED_HOSTS=/) {
-            print "DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 " server_ip
-        } else if ($0 ~ /^CSRF_TRUSTED_ORIGINS=/) {
-            print "CSRF_TRUSTED_ORIGINS=http://" server_ip ":7579 https://" server_ip ":7579"
-        } else if ($0 ~ /^CORS_ALLOWED_ORIGINS=/) {
-            print "CORS_ALLOWED_ORIGINS=http://" server_ip ":7579 https://" server_ip ":7579"
-        } else if ($0 ~ /^AUTH_LDAP_SERVER=/) {
-            print "AUTH_LDAP_SERVER=" ldap_srv
-        } else if ($0 ~ /^AUTH_LDAP_PASSWORD=/) {
-            print "AUTH_LDAP_PASSWORD=" ldap_pass
-        } else {
-            print $0
-        }
-    }' .env > .env.tmp && mv .env.tmp .env
+    # Usar sed para reemplazar valores de forma segura
+    sed -i.bak \
+        -e "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${POSTGRES_PASSWORD}|" \
+        -e "s|^DJANGO_SECRET_KEY=.*|DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}|" \
+        -e "s|^DJANGO_ALLOWED_HOSTS=.*|DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 ${SERVER_IP}|" \
+        -e "s|^CSRF_TRUSTED_ORIGINS=.*|CSRF_TRUSTED_ORIGINS=http://${SERVER_IP}:7579 https://${SERVER_IP}:7579|" \
+        -e "s|^CORS_ALLOWED_ORIGINS=.*|CORS_ALLOWED_ORIGINS=http://${SERVER_IP}:7579 https://${SERVER_IP}:7579|" \
+        -e "s|^AUTH_LDAP_SERVER=.*|AUTH_LDAP_SERVER=${LDAP_SERVER}|" \
+        -e "s|^AUTH_LDAP_PASSWORD=.*|AUTH_LDAP_PASSWORD=${LDAP_PASSWORD}|" \
+        .env
 
     log_success "Archivo .env configurado correctamente"
-
-    # ========================================
-    # 9. CREAR DIRECTORIOS NECESARIOS
-    # ========================================
-    log_info "Creando directorios para volúmenes..."
-    mkdir -p postgresql redis backend/staticfiles backend/media frontend/nginx/conf.d frontend/staticfiles frontend/letsencrypt
-    log_success "Directorios creados"
-
-    # ========================================
-    # 10. MOSTRAR RESUMEN
-    # ========================================
-    echo ""
-    echo "=========================================="
-    echo "RESUMEN DE CONFIGURACIÓN"
-    echo "=========================================="
-    echo "Directorio de instalación: $INSTALL_DIR"
-    echo "Servidor EduControl: $SERVER_IP"
-    echo "Servidor LDAP: $LDAP_SERVER"
-    echo "Contraseña PostgreSQL: [GENERADA ALEATORIAMENTE]"
-    echo "Django Secret Key: [GENERADA ALEATORIAMENTE]"
-    echo "=========================================="
-    echo ""
 else
     log_warning "El archivo .env ya existe. Se omite la configuración."
     log_info "Si deseas reconfigurar, elimina el archivo .env y ejecuta el script nuevamente."
-    
-    # ========================================
-    # 9. CREAR DIRECTORIOS NECESARIOS
-    # ========================================
-    log_info "Creando directorios para volúmenes..."
-    mkdir -p postgresql redis backend/staticfiles backend/media frontend/nginx/conf.d frontend/staticfiles frontend/letsencrypt
-    log_success "Directorios creados"
 fi
 
 # ========================================
-# 11. INICIO DE CONTENEDORES
+# 8. CREAR DIRECTORIOS NECESARIOS
+# ========================================
+log_info "Creando directorios para volúmenes..."
+mkdir -p postgresql redis backend/staticfiles backend/media frontend/nginx/conf.d frontend/staticfiles frontend/letsencrypt
+log_success "Directorios creados"
+
+# ========================================
+# 9. INICIO DE CONTENEDORES
 # ========================================
 log_info "Iniciando contenedores de EduControl..."
 echo ""
