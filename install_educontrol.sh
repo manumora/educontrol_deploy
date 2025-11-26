@@ -106,8 +106,8 @@ fi
 # ========================================
 # 3. CREAR CARPETA EN RAÍZ
 # ========================================
-log_info "Creando directorio /docker/educontrol"
-INSTALL_DIR="/docker/educontrol"
+log_info "Creando directorio /var/docker/educontrol"
+INSTALL_DIR="/var/docker/educontrol"
 
 if [ -d "$INSTALL_DIR" ]; then
     log_warning "El directorio $INSTALL_DIR ya existe"
