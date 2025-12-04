@@ -18,7 +18,7 @@ Este script realizará automáticamente las siguientes acciones:
 
 Después de ejecutar el script de instalación:
 
-1. Edita el archivo de configuración de tus nodos (por ejemplo, `/etc/puppetlabs/code/environments/production/manifests/site.pp`)
+1. Edita el archivo de configuración de tus nodos (por ejemplo, `/etc/puppetlabs/code/environments/production/modules/especifica_xubuntu2204/manifests/init.pp`)
 
 2. Añade `include educontrol_agent` a la configuración de los nodos donde quieres instalar el agente:
 
