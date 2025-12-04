@@ -266,8 +266,6 @@ $DOCKER_COMPOSE_CMD pull
 log_info "Levantando servicios..."
 $DOCKER_COMPOSE_CMD up -d
 
-cd "$INSTALL_DIR"
-
 echo ""
 log_success "¡EduControl está iniciando!"
 echo ""
