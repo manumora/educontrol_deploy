@@ -1,0 +1,11 @@
+{
+  "host": "AQUI_IP_SERVIDOR_EDUCONTROL",
+  "websocket_port": "7579",
+  "http_port": "7579",
+  "token": "AQUI_TU_API_TOKEN",
+  "heartbeat_interval": 30,
+  "reconnect_delay": 5,
+  "auto_inventory": true,
+  "auto_rename": true
+}
+
