@@ -85,6 +85,8 @@ if ! command -v unzip &> /dev/null; then
 fi
 log_success "unzip está disponible"
 
+rm -rf "$PUPPET_MODULES_DIR/educontrol_agent" || true
+
 # ========================================
 # 5. DESCOMPRIMIR ARCHIVO
 # ========================================
