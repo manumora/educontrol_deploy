@@ -85,8 +85,6 @@ if ! command -v unzip &> /dev/null; then
 fi
 log_success "unzip está disponible"
 
-rm -rf "$PUPPET_MODULES_DIR/educontrol_agent" || true
-
 # ========================================
 # 5. DESCOMPRIMIR ARCHIVO
 # ========================================
@@ -100,6 +98,8 @@ if [ -f "$CONFIG_FILE" ]; then
     log_info "Se encontró configuración existente, respaldando..."
     cp "$CONFIG_FILE" "$BACKUP_CONFIG"
 fi
+
+rm -rf "$PUPPET_MODULES_DIR/educontrol_agent" || true
 
 if ! unzip -o "$ZIP_FILE" -d "$PUPPET_MODULES_DIR"; then
     log_error "Error al descomprimir el archivo"
