@@ -91,10 +91,29 @@ rm -rf "$PUPPET_MODULES_DIR/educontrol_agent" || true
 # 5. DESCOMPRIMIR ARCHIVO
 # ========================================
 log_info "Descomprimiendo archivo en $PUPPET_MODULES_DIR..."
+
+# Respaldar agent_config.json si existe
+CONFIG_FILE="$PUPPET_MODULES_DIR/educontrol_agent/files/agent_config.json"
+BACKUP_CONFIG="/tmp/agent_config_backup.json"
+
+if [ -f "$CONFIG_FILE" ]; then
+    log_info "Se encontró configuración existente, respaldando..."
+    cp "$CONFIG_FILE" "$BACKUP_CONFIG"
+fi
+
 if ! unzip -o "$ZIP_FILE" -d "$PUPPET_MODULES_DIR"; then
     log_error "Error al descomprimir el archivo"
     exit 1
 fi
+
+# Restaurar agent_config.json si existía
+if [ -f "$BACKUP_CONFIG" ]; then
+    log_info "Restaurando configuración anterior..."
+    cp "$BACKUP_CONFIG" "$CONFIG_FILE"
+    rm -f "$BACKUP_CONFIG"
+    log_success "Configuración anterior preservada"
+fi
+
 log_success "Archivo descomprimido correctamente"
 
 # ========================================
