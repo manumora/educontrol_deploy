@@ -27,7 +27,7 @@
 class educontrol_agent () {
 
   # Versión del agente
-  $version = '1.0.8'
+  $version = '1.0.9'
 
   # Asegurar que el directorio existe
   file { '/etc/educontrol':
