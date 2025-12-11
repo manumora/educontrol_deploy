@@ -52,6 +52,7 @@ class educontrol_agent () {
     command => "/usr/bin/dpkg -i /tmp/educontrol-agent_${version}_all.deb && /usr/bin/apt-get install -f -y",
     unless  => "/usr/bin/dpkg -s educontrol-agent 2>/dev/null | /bin/grep -q '^Version: ${version}$'",
     require => File["/tmp/educontrol-agent_${version}_all.deb"],
+    notify  => Service['educontrol-agent'],
   }
 
   # Descargar el archivo de configuración en el cliente
