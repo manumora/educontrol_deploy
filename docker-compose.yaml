@@ -43,6 +43,7 @@ services:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
+      SECURE_SSL_REDIRECT: "False" # Handled by Nginx but good to be explicit, usually False behind proxy unless configured
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
       DJANGO_DEBUG: ${DJANGO_DEBUG}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -70,11 +71,12 @@ services:
     image: manumora/educontrol-frontend:latest
     restart: always
     ports:
-      - "${EDUCONTROL_PORT}:80"
+      - "${EDUCONTROL_PORT}:443"
     volumes:
       - ./frontend/staticfiles:/static_files
       - ./backend/media:/media_files
       - ./frontend/letsencrypt:/etc/letsencrypt
+      - ./frontend/certs:/etc/nginx/certs
     depends_on:
       - backend
     networks:
