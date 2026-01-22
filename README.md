@@ -37,7 +37,7 @@ El script realizará automáticamente las siguientes acciones:
 Una vez completada la instalación, podrás acceder a EduControl en:
 
 ```
-http://TU_IP_SERVIDOR:7579/
+https://TU_IP_SERVIDOR:7579/
 ```
 
 La configuración y credenciales se guardan en `/var/docker/educontrol/.env`
