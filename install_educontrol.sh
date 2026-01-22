@@ -227,9 +227,13 @@ if [ ! -f ".env" ]; then
         } else if ($0 ~ /^DJANGO_ALLOWED_HOSTS=/) {
             print "DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 " server_ip
         } else if ($0 ~ /^CSRF_TRUSTED_ORIGINS=/) {
-            print "CSRF_TRUSTED_ORIGINS=http://" server_ip ":7579 https://" server_ip ":7579"
+            print "CSRF_TRUSTED_ORIGINS=https://" server_ip ":7579"
         } else if ($0 ~ /^CORS_ALLOWED_ORIGINS=/) {
-            print "CORS_ALLOWED_ORIGINS=http://" server_ip ":7579 https://" server_ip ":7579"
+            print "CORS_ALLOWED_ORIGINS=https://" server_ip ":7579"
+        } else if ($0 ~ /^SSL_DOMAIN=/) {
+            print "SSL_DOMAIN=" server_ip
+        } else if ($0 ~ /^SSL_IP=/) {
+            print "SSL_IP=" server_ip
         } else if ($0 ~ /^AUTH_LDAP_SERVER=/) {
             print "AUTH_LDAP_SERVER=" ldap_srv
         } else if ($0 ~ /^AUTH_LDAP_PASSWORD=/) {
@@ -249,8 +253,79 @@ fi
 # 8. CREAR DIRECTORIOS NECESARIOS
 # ========================================
 log_info "Creando directorios para volúmenes..."
-mkdir -p postgresql redis backend/staticfiles backend/media frontend/nginx/conf.d frontend/staticfiles frontend/letsencrypt
+mkdir -p postgresql redis backend/staticfiles backend/media frontend/nginx/conf.d frontend/staticfiles frontend/letsencrypt frontend/certs
 log_success "Directorios creados"
+
+# ========================================
+# 8.1. VERIFICAR Y GENERAR CERTIFICADOS SSL
+# ========================================
+log_info "Verificando certificados SSL..."
+
+if [ -f "frontend/certs/server.key" ] && [ -f "frontend/certs/server.crt" ]; then
+    log_success "Los certificados SSL ya existen"
+else
+    log_warning "Los certificados SSL no existen. Generando certificados autofirmados..."
+    
+    # Cargar variables del .env si existen
+    if [ -f .env ]; then
+        export $(grep -v '^#' .env | grep -v '^$' | xargs -0)
+    fi
+    
+    # Establecer valores por defecto si no están en .env
+    SSL_DOMAIN=${SSL_DOMAIN:-$SERVER_IP}
+    SSL_IP=${SSL_IP:-$SERVER_IP}
+    
+    log_info "Generando certificados para Dominio: $SSL_DOMAIN e IP: $SSL_IP"
+    
+    # Crear archivo de configuración OpenSSL
+    cat > frontend/certs/openssl.cnf <<EOF
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+distinguished_name = dn
+req_extensions = req_ext
+
+[dn]
+C = ES
+ST = Madrid
+L = Madrid
+O = EduControl
+OU = IT
+CN = $SSL_DOMAIN
+
+[req_ext]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = $SSL_DOMAIN
+DNS.2 = localhost
+IP.1 = $SSL_IP
+IP.2 = 127.0.0.1
+EOF
+    
+    # Generar certificado
+    openssl req -x509 -new -nodes \
+        -keyout frontend/certs/server.key \
+        -out frontend/certs/server.crt \
+        -config frontend/certs/openssl.cnf \
+        -days 3650 2>/dev/null
+    
+    if [ $? -eq 0 ]; then
+        log_success "Certificados SSL generados correctamente"
+        log_info "  - frontend/certs/server.key"
+        log_info "  - frontend/certs/server.crt"
+        log_info "Los certificados son válidos para:"
+        log_info "  - Dominio: $SSL_DOMAIN"
+        log_info "  - IP: $SSL_IP"
+        log_info "  - Válidos por: 10 años"
+    else
+        log_error "Error al generar los certificados SSL"
+        exit 1
+    fi
+fi
+
+echo ""
 
 # ========================================
 # 9. INICIO DE CONTENEDORES
@@ -279,7 +354,7 @@ echo "2. Verifica los logs si hay algún problema:"
 echo "   $DOCKER_COMPOSE_CMD logs -f"
 echo ""
 echo "3. Accede a EduControl en:"
-echo "   http://${SERVER_IP}:7579/"
+echo "   https://${SERVER_IP}:7579/"
 echo ""
 echo "4. Las credenciales y configuración están en:"
 echo "   ${INSTALL_DIR}/.env"
