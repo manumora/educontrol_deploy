@@ -1,65 +1,23 @@
-# EduControl Deploy
+# EduControl
 
-Repositorio de despliegue para el sistema EduControl.
+EduControl es una plataforma integral diseñada para la gestión, monitorización y control de equipamiento tecnológico, orientada a entornos educativos. Permite administrar de forma centralizada los dispositivos, visualizar su ubicación a través de mapas, gestionar usuarios y obtener métricas de uso.
+
+## Módulos Principales del Proyecto
+
+El sistema se estructura en varios módulos fundamentales. A continuación se incluye una breve explicación de cada uno, junto con los enlaces a su correspondiente documentación:
+
+- **[Agentes](./docs/AGENTS.md)**: Encargados de la recolección de datos y la monitorización constante de los equipos cliente en tiempo real.
+- **[Inventario](./docs/INVENTORY.md)**: Gestión del hardware, características y software de todos los dispositivos registrados en la red.
+- **[LDAP](./docs/LDAP.md)**: Módulo de integración con el servidor LDAP para la gestión de usuarios y dispositivos.
+- **[Mapas](./docs/MAPS.md)**: Interfaz para la representación visual y localización física de los equipos sobre los planos del centro educativo.
+- **[Documentos](./docs/REPORTS.md)**: Herramienta para la generación de documentos.
 
 ## Instalación del Servidor EduControl
 
-Para instalar el servidor EduControl, ejecuta el siguiente comando como root:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/manumora/educontrol_deploy/refs/heads/main/install_educontrol.sh | bash
-```
-
-### ¿Qué hace el script de instalación?
-
-El script realizará automáticamente las siguientes acciones:
-
-1. **Verifica e instala Docker Compose** si no está presente
-2. **Crea el directorio de instalación** en `/var/docker/educontrol`
-3. **Descarga los archivos de configuración** necesarios (docker-compose.yaml y plantilla .env)
-4. **Solicita la configuración**:
-   - Detecta automáticamente la IP del servidor EduControl
-   - Pide la IP del servidor LDAP
-   - Pide la contraseña del servidor LDAP
-5. **Genera contraseñas seguras** para PostgreSQL y Django
-6. **Crea los directorios** necesarios para los volúmenes de Docker
-7. **Descarga e inicia los contenedores** de Docker
-
-### Requisitos previos
-
-- Sistema operativo: Linux (probado en Debian/Ubuntu)
-- Docker instalado y funcionando
-- Permisos de root
-- Conexión a Internet para descargar las imágenes
-
-### Acceso al servidor
-
-Una vez completada la instalación, podrás acceder a EduControl en:
-
-```
-http://TU_IP_SERVIDOR:7579/
-```
-
-La configuración y credenciales se guardan en `/var/docker/educontrol/.env`
-
-### Actualización del servidor
-
-Para actualizar EduControl a una nueva versión, simplemente ejecuta el mismo comando de instalación:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/manumora/educontrol_deploy/refs/heads/main/install_educontrol.sh | sudo bash
-```
-
-El script detectará que el archivo `.env` ya existe y:
-- **Mantendrá** toda la configuración existente (contraseñas, IPs, etc.)
-- **Actualizará** el archivo `docker-compose.yaml` a la última versión
-- **Descargará** las nuevas imágenes de Docker
-- **Reiniciará** los contenedores con las nuevas versiones
-
-No se perderán datos ni configuraciones durante la actualización.
+Para conocer todos los detalles sobre cómo instalar, configurar y actualizar el servidor EduControl, consulta la [Instalación del Servidor](./docs/INSTALLATION.md).
 
 ---
 
 ## Instalación del Agente Puppet
 
-Para instalar el agente EduControl en los clientes mediante Puppet, consulta la documentación en [`agent/README.md`](agent/README.md).
+Para instalar el agente EduControl en los clientes mediante Puppet, consulta la documentación en [`Instalación del Agente`](agent/README.md).
