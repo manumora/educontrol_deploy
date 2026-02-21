@@ -15,7 +15,7 @@ Utilizando la información sincronizada con el servidor de directorio, se pueden
 ### 2. Informes de Equipos
 Basándose en la información obtenida mediante el autoinventariado, este sub-módulo permite:
 - **Personalización Total:** El administrador puede seleccionar exactamente qué campos incluir o excluir del informe.
-- **Casos de Uso:** Generación rápida de listados con los números de serie de los portátiles asignados a aulas específicas para tareas de inventariado o seguros.
+- **Casos de Uso:** Generación rápida de listados con los números de serie de los portátiles asignados a aulas específicas para tareas de inventariado.
 - **Formatos de Exportación:** Todos los informes de equipos pueden generarse tanto en formato **PDF** para impresión como en **Excel** para análisis de datos avanzado.
 
 ### 3. Informes de Grupos y Espacios
