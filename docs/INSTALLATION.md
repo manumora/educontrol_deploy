@@ -37,7 +37,7 @@ El script realizará automáticamente las siguientes acciones:
 Una vez completada la instalación, podrás acceder a EduControl en:
 
 ```
-http://TU_IP_SERVIDOR:7579/
+https://TU_IP_SERVIDOR:7579/
 ```
 
 La configuración y credenciales se guardan en `/var/docker/educontrol/.env`
@@ -57,3 +57,5 @@ El script detectará que el archivo `.env` ya existe y:
 - **Reiniciará** los contenedores con las nuevas versiones
 
 No se perderán datos ni configuraciones durante la actualización.
+
+[Volver](../README.md)

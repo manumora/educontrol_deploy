@@ -1,5 +1,7 @@
 # Instalación del Agente EduControl
 
+Este documento detalla el proceso de instalación y configuración del agente EduControl en los equipos cliente de forma centralizada mediante Puppet.
+
 ## Instalación del Módulo Puppet
 
 Para instalar el módulo Puppet en tu servidor Puppet, ejecuta el siguiente comando como root:
@@ -18,16 +20,22 @@ Este script realizará automáticamente las siguientes acciones:
 
 Después de ejecutar el script de instalación:
 
-1. Edita el archivo de configuración de tus nodos (por ejemplo, `/etc/puppetlabs/code/environments/production/modules/especifica_xubuntu2204/manifests/init.pp`)
+1. **Crear un API key** en el servidor EduControl accediendo a **Configuración -> Tokens API**.
 
-2. Añade `include educontrol_agent` a la configuración de los nodos donde quieres instalar el agente:
+2. **Configurar el agente**: Modifica el fichero `/etc/puppetlabs/code/environments/production/modules/educontrol_agent/files/agent_config.json` para:
+   - Añadir el **API key** creado en el paso 1.
+   - Configurar el **"host"** con la dirección IP del servidor EduControl.
 
-2. Reinicia el servidor Puppet:
+3. **Editar la configuración de nodos**: Abre el archivo de configuración de tus nodos (por ejemplo, `/etc/puppetlabs/code/environments/production/modules/especifica_xubuntu2204/manifests/init.pp`).
+
+4. **Añadir el módulo**: Incluye `include educontrol_agent` en la configuración de los nodos donde quieras desplegar el agente.
+
+5. **Reinicia el servidor Puppet**:
    ```bash
    systemctl restart puppetserver
    ```
 
-4. Aplica los cambios en los clientes Puppet:
+6. **Aplica los cambios en los clientes Puppet**:
    ```bash
    puppet agent -t
    ```

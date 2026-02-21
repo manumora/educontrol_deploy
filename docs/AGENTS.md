@@ -18,3 +18,5 @@ El agente posee una característica inteligente de autorenombrado. Durante su in
 
 - Si el equipo es encontrado en LDAP, el agente extrae el nombre de host (*hostname*) asignado oficialmente en el directorio.
 - A continuación, se **autorenombra** el equipo de manera transparente para reflejar exactamente el identificador oficial de LDAP. Además dicho nombre se actualiza en el inventario de EduControl manteniendo el inventario organizado automáticamente sin intervención manual.
+
+[Volver](../README.md)

@@ -21,3 +21,5 @@ Basándose en la información obtenida mediante el autoinventariado, este sub-m�
 ### 3. Informes de Grupos y Espacios
 Para la organización física de las instalaciones, el sistema genera:
 - **Etiquetado de Aulas:** Creación masiva de etiquetas para colocar en los equipos físicos que incluyen información clave como el nombre del curso, el número de aula y el número de equipo individual, facilitando el orden y la trazabilidad en el centro educativo.
+
+[Volver](../README.md)

@@ -20,3 +20,5 @@ Además de los equipos individuales, EduControl gestiona de forma inteligente un
 
 - **Marcas y Modelos:** Durante el proceso de autoinventariado, el sistema extrae la información de marca y modelo de cada componente y equipo.
 - **Normalización Automática:** Si el agente reporta un fabricante o modelo que no existía previamente en los registros globales, el sistema lo **autoinventaría** automáticamente en la base de datos de fabricantes, permitiendo una clasificación y filtrado profesional de todos los recursos del centro.
+
+[Volver](../README.md)

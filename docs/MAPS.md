@@ -20,3 +20,5 @@ Desde la propia interfaz del mapa, el administrador puede interactuar directamen
 - **Acceso Remoto:** Lanzar directamente sesiones de **Terminal** o **VNC** seleccionando el equipo en el plano.
 - **Historial de Sesiones:** Consultar el histórico de usuarios que han utilizado un equipo específico.
 - **Acciones Masivas:** EduControl permite realizar operaciones y lanzar comandos de forma masiva a grupos de equipos seleccionados directamente desde la vista de mapa, optimizando las tareas de mantenimiento por aulas o zonas.
+
+[Volver](../README.md)

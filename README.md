@@ -2,6 +2,17 @@
 
 EduControl es una plataforma integral diseñada para la gestión, monitorización y control de equipamiento tecnológico, orientada a entornos educativos. Permite administrar de forma centralizada los dispositivos, visualizar su ubicación a través de mapas, gestionar usuarios y obtener métricas de uso.
 
+## Tecnologías Utilizadas
+
+- **Frontend:** React, TypeScript, Vite, React Context API / useReducer, Material UI.
+- **Backend:** Python, Django, Django Rest Framework.
+- **Comunicación:** WebSockets, xterm, VNC.
+- **Base de Datos:** PostgreSQL, Redis.
+- **Generación de Documentos:** ReportLab, OpenPyXL.
+- **Infraestructura:** Docker, Docker Compose, Nginx.
+- **Despliegue/Configuración:** Puppet.
+
+
 ## Módulos Principales del Proyecto
 
 El sistema se estructura en varios módulos fundamentales. A continuación se incluye una breve explicación de cada uno, junto con los enlaces a su correspondiente documentación:

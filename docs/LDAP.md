@@ -20,3 +20,5 @@ Gestión de los grupos técnicos y de red que definen permisos y configuraciones
 
 ### 4. Grupos
 Administración de grupos lógicos de usuarios. Permite organizar de forma jerárquica o funcional a los miembros del centro educativo (ej. claustro, alumnos por niveles, personal administrativo), simplificando la asignación de permisos y la generación de informes masivos.
+
+[Volver](../README.md)
