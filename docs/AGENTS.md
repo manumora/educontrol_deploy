@@ -7,9 +7,9 @@ El módulo de Agentes de EduControl es la pieza fundamental para la comunicació
 ### 1. Terminal Remota
 A través del agente, el administrador puede abrir una sesión de terminal interactiva directamente contra el equipo remoto. Esto permite la ejecución de comandos en tiempo real, facilitando la resolución de problemas y la configuración del sistema operativo sin necesidad de desplazarse físicamente.
 
-<video src="https://raw.githubusercontent.com/manumora/educontrol_deploy/main/docs/img/terminal_simple.mp4" width="100%" controls></video>
+<video src="" width="100%" controls></video>
 
-[![Ver demo](https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg)](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+[![Ver demo](https://raw.githubusercontent.com/manumora/educontrol_deploy/main/docs/img/terminal_simple.mp4)](https://raw.githubusercontent.com/manumora/educontrol_deploy/main/docs/img/terminal_simple.mp4)
 
 ### 2. Administración Gráfica (VNC)
 Para aquellos casos en los que se requiera interacción visual, el agente integra la posibilidad de iniciar una sesión VNC (Virtual Network Computing). Con este acceso remoto completo al escritorio, el administrador puede operar el equipo como si estuviera frente a él, brindando soporte directamente a los usuarios o configurando aplicaciones con interfaz gráfica.
