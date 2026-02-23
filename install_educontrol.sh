@@ -4,6 +4,9 @@
 # Autor: Manuel Mora Gordillo
 # Fecha: 2025
 
+# URL pública del script (usada para la auto-re-ejecución cuando se lanza con curl | bash)
+SCRIPT_URL="https://raw.githubusercontent.com/manumora/educontrol_deploy/refs/heads/main/install_educontrol.sh"
+
 set -e  # Detener el script si hay algún error
 
 # Colores para mensajes
@@ -52,15 +55,17 @@ if [ "$EUID" -ne 0 ]; then
 fi
 log_success "Usuario root verificado"
 
-# Redirigir stdin al terminal para que los 'read' funcionen aunque
-# el script se ejecute con: curl -fsSL URL | bash
+# Cuando el script se lanza via 'curl | bash', stdin está ocupado por el pipe
+# y los 'read' interactivos no pueden leer del teclado.
+# Solución: descargarse a un fichero temporal y re-ejecutarse sin pipe.
 if [ ! -t 0 ]; then
-    exec </dev/tty || {
-        log_error "No se puede acceder al terminal interactivo."
-        log_info "Ejecuta el script así en lugar de pipear con curl:"
-        log_info "  curl -fsSL URL -o install.sh && bash install.sh"
-        exit 1
-    }
+    log_info "Detectado lanzamiento via pipe (curl | bash). Re-ejecutando desde fichero temporal..."
+    TMPSCRIPT=$(mktemp /tmp/install_educontrol_XXXXXX.sh)
+    curl -fsSL "${SCRIPT_URL}" -o "${TMPSCRIPT}"
+    chmod +x "${TMPSCRIPT}"
+    exec bash "${TMPSCRIPT}"
+    # exec reemplaza el proceso: si llegamos aquí, algo falló
+    exit 1
 fi
 
 # ========================================
