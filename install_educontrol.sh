@@ -195,10 +195,10 @@ if [ ! -f ".env" ]; then
     fi
     if [ -z "$SERVER_IP" ]; then
         log_warning "No se pudo detectar la IP automáticamente"
-        read -p "Ingresa la IP o dominio del servidor manualmente: " SERVER_IP
+        read -p "Ingresa la IP o dominio del servidor manualmente: " SERVER_IP </dev/tty
         while [ -z "$SERVER_IP" ]; do
             log_warning "La IP/dominio no puede estar vacía"
-            read -p "Ingresa la IP o dominio del servidor: " SERVER_IP
+            read -p "Ingresa la IP o dominio del servidor: " SERVER_IP </dev/tty
         done
     else
         log_success "IP del servidor detectada: $SERVER_IP"
@@ -208,18 +208,18 @@ if [ ! -f ".env" ]; then
     echo ""
     log_info "Configuración de LDAP"
     echo ""
-    read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER
+    read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER </dev/tty
     while [ -z "$LDAP_SERVER" ] || [[ "$LDAP_SERVER" == \#* ]]; do
         log_warning "La IP/dominio del servidor LDAP no puede estar vacía ni comenzar por '#'"
-        read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER
+        read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER </dev/tty
     done
 
     # Contraseña servidor LDAP
-    read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
+    read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD </dev/tty
     echo ""
     while [ -z "$LDAP_PASSWORD" ]; do
         log_warning "La contraseña LDAP no puede estar vacía"
-        read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
+        read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD </dev/tty
         echo ""
     done
 
@@ -306,7 +306,10 @@ else
     
     # Cargar variables del .env si existen
     if [ -f .env ]; then
-        export $(grep -v '^#' .env | grep -v '^$' | xargs -0)
+        set -a
+        # shellcheck disable=SC1091
+        source .env
+        set +a
     fi
     
     # Establecer valores por defecto si no están en .env
