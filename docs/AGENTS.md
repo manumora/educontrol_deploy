@@ -7,17 +7,17 @@ El módulo de Agentes de EduControl es la pieza fundamental para la comunicació
 ### 1. Terminal Remota
 A través del agente, el administrador puede abrir una sesión de terminal interactiva directamente contra el equipo remoto. Esto permite la ejecución de comandos en tiempo real, facilitando la resolución de problemas y la configuración del sistema operativo sin necesidad de desplazarse físicamente.
 
-<video src="./img/terminal_simple.mp4" controls width="100%"></video>
+![Terminal Remota](./img/terminal_simple.mp4)
 
 ### 2. Administración Gráfica (VNC)
 Para aquellos casos en los que se requiera interacción visual, el agente integra la posibilidad de iniciar una sesión VNC (Virtual Network Computing). Con este acceso remoto completo al escritorio, el administrador puede operar el equipo como si estuviera frente a él, brindando soporte directamente a los usuarios o configurando aplicaciones con interfaz gráfica.
 
-<video src="./img/vnc.mp4" controls width="100%"></video>
+![Administración Gráfica VNC](./img/vnc.mp4)
 
 ### 3. Ejecución Simultánea de Comandos
 EduControl permite la ejecución masiva de comandos u operaciones en múltiples agentes **simultáneamente**. Puedes seleccionar varios equipos a la vez y lanzar tareas administrativas sobre todos ellos, lo que reduce dramáticamente los tiempos de mantenimiento para laboratorios o aulas completas.
 
-<video src="./img/terminal_multiple.mp4" controls width="100%"></video>
+![Ejecución Simultánea](./img/terminal_multiple.mp4)
 
 ### 4. Sistema de Autorenombrado (Integración LDAP)
 El agente posee una característica inteligente de autorenombrado. Durante su inicio, el agente consulta si el equipo está registrado en el servicio de directorio (LDAP) de la organización. 
