@@ -52,6 +52,17 @@ if [ "$EUID" -ne 0 ]; then
 fi
 log_success "Usuario root verificado"
 
+# Redirigir stdin al terminal para que los 'read' funcionen aunque
+# el script se ejecute con: curl -fsSL URL | bash
+if [ ! -t 0 ]; then
+    exec </dev/tty || {
+        log_error "No se puede acceder al terminal interactivo."
+        log_info "Ejecuta el script así en lugar de pipear con curl:"
+        log_info "  curl -fsSL URL -o install.sh && bash install.sh"
+        exit 1
+    }
+fi
+
 # ========================================
 # 2. VERIFICAR E INSTALAR DOCKER COMPOSE
 # ========================================
@@ -195,10 +206,10 @@ if [ ! -f ".env" ]; then
     fi
     if [ -z "$SERVER_IP" ]; then
         log_warning "No se pudo detectar la IP automáticamente"
-        read -p "Ingresa la IP o dominio del servidor manualmente: " SERVER_IP </dev/tty
+        read -p "Ingresa la IP o dominio del servidor manualmente: " SERVER_IP
         while [ -z "$SERVER_IP" ]; do
             log_warning "La IP/dominio no puede estar vacía"
-            read -p "Ingresa la IP o dominio del servidor: " SERVER_IP </dev/tty
+            read -p "Ingresa la IP o dominio del servidor: " SERVER_IP
         done
     else
         log_success "IP del servidor detectada: $SERVER_IP"
@@ -208,18 +219,18 @@ if [ ! -f ".env" ]; then
     echo ""
     log_info "Configuración de LDAP"
     echo ""
-    read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER </dev/tty
+    read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER
     while [ -z "$LDAP_SERVER" ] || [[ "$LDAP_SERVER" == \#* ]]; do
         log_warning "La IP/dominio del servidor LDAP no puede estar vacía ni comenzar por '#'"
-        read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER </dev/tty
+        read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER
     done
 
     # Contraseña servidor LDAP
-    read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD </dev/tty
+    read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
     echo ""
     while [ -z "$LDAP_PASSWORD" ]; do
         log_warning "La contraseña LDAP no puede estar vacía"
-        read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD </dev/tty
+        read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
         echo ""
     done
 
