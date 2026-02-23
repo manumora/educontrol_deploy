@@ -324,12 +324,11 @@ if [ -f "frontend/certs/server.key" ] && [ -f "frontend/certs/server.crt" ]; the
 else
     log_warning "Los certificados SSL no existen. Generando certificados autofirmados..."
     
-    # Cargar variables del .env si existen
+    # Leer solo las variables SSL del .env (sin source para evitar
+    # que valores con caracteres especiales se ejecuten como comandos)
     if [ -f .env ]; then
-        set -a
-        # shellcheck disable=SC1091
-        source .env
-        set +a
+        SSL_DOMAIN=$(grep '^SSL_DOMAIN=' .env | cut -d'=' -f2- | tr -d '\r')
+        SSL_IP=$(grep '^SSL_IP='     .env | cut -d'=' -f2- | tr -d '\r')
     fi
     
     # Establecer valores por defecto si no están en .env
