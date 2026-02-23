@@ -12,6 +12,7 @@ A través del agente, el administrador puede abrir una sesión de terminal inter
 
 ### 2. Administración Gráfica (VNC)
 Para aquellos casos en los que se requiera interacción visual, el agente integra la posibilidad de iniciar una sesión VNC (Virtual Network Computing). Con este acceso remoto completo al escritorio, el administrador puede operar el equipo como si estuviera frente a él, brindando soporte directamente a los usuarios o configurando aplicaciones con interfaz gráfica.
+
 [![Hacer click para descargar video de demo](https://raw.githubusercontent.com/manumora/educontrol_deploy/main/docs/img/vnc.png)](https://raw.githubusercontent.com/manumora/educontrol_deploy/main/docs/img/vnc.mp4)
 
 ### 3. Ejecución Simultánea de Comandos
