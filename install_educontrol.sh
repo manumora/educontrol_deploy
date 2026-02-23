@@ -63,7 +63,7 @@ if [ ! -t 0 ]; then
     TMPSCRIPT=$(mktemp /tmp/install_educontrol_XXXXXX.sh)
     curl -fsSL "${SCRIPT_URL}" -o "${TMPSCRIPT}"
     chmod +x "${TMPSCRIPT}"
-    exec bash "${TMPSCRIPT}"
+    exec bash "${TMPSCRIPT}" </dev/tty
     # exec reemplaza el proceso: si llegamos aquí, algo falló
     exit 1
 fi
