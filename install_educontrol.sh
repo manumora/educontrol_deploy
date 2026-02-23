@@ -57,12 +57,16 @@ log_success "Usuario root verificado"
 
 # Cuando el script se lanza via 'curl | bash', stdin está ocupado por el pipe
 # y los 'read' interactivos no pueden leer del teclado.
-# Solución: descargarse a un fichero temporal y re-ejecutarse sin pipe.
-if [ ! -t 0 ]; then
+# Solución: descargarse a un fichero temporal y re-ejecutarse.
+# Usamos _EDUCONTROL_REEXEC como flag para evitar bucles infinitos
+# (no se puede confiar solo en [ -t 0 ] porque en algunos entornos
+# /dev/tty no es reconocido como terminal por el proceso hijo).
+if [ ! -t 0 ] && [ "${_EDUCONTROL_REEXEC:-0}" != "1" ]; then
     log_info "Detectado lanzamiento via pipe (curl | bash). Re-ejecutando desde fichero temporal..."
     TMPSCRIPT=$(mktemp /tmp/install_educontrol_XXXXXX.sh)
     curl -fsSL "${SCRIPT_URL}" -o "${TMPSCRIPT}"
     chmod +x "${TMPSCRIPT}"
+    export _EDUCONTROL_REEXEC=1
     exec bash "${TMPSCRIPT}" </dev/tty
     # exec reemplaza el proceso: si llegamos aquí, algo falló
     exit 1
