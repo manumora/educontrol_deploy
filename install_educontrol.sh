@@ -68,13 +68,50 @@ elif command -v docker-compose &> /dev/null; then
 else
     log_warning "Docker Compose no está instalado. Procediendo a instalar..."
     
-    # Verificar si Docker está instalado
+    # Verificar si Docker está instalado; si no, instalarlo automáticamente
     if ! command -v docker &> /dev/null; then
-        log_error "Docker no está instalado. Por favor, instala Docker primero."
-        log_info "Visita: https://docs.docker.com/engine/install/"
-        exit 1
+        log_warning "Docker no está instalado. Procediendo a instalar Docker..."
+
+        # Actualizar índice de paquetes e instalar dependencias
+        apt-get update -y
+        apt-get install -y \
+            ca-certificates \
+            curl \
+            gnupg \
+            lsb-release
+
+        # Añadir clave GPG oficial de Docker
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/$(. /etc/os-release && echo "$ID")/gpg \
+            | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        chmod a+r /etc/apt/keyrings/docker.gpg
+
+        # Añadir repositorio de Docker
+        echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+            https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") \
+            $(lsb_release -cs) stable" \
+            | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        # Instalar Docker Engine
+        apt-get update -y
+        apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+        # Habilitar e iniciar Docker
+        systemctl enable docker
+        systemctl start docker
+
+        log_success "Docker instalado correctamente"
+
+        # Docker Compose plugin ya viene incluido; configurar comando y salir de este bloque
+        DOCKER_COMPOSE_CMD="docker compose"
+        docker compose version
     fi
-    
+
+    if [ -n "$DOCKER_COMPOSE_CMD" ]; then
+        : # Docker Compose ya configurado junto con la instalación de Docker
+    else
+
     # Instalar Docker Compose plugin
     log_info "Instalando Docker Compose plugin..."
     DOCKER_CONFIG=${DOCKER_CONFIG:-/usr/local/lib/docker}
@@ -104,6 +141,7 @@ else
     log_success "Docker Compose instalado correctamente"
     DOCKER_COMPOSE_CMD="docker compose"
     docker compose version
+    fi # fin if DOCKER_COMPOSE_CMD
 fi
 
 # ========================================
