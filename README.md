@@ -33,4 +33,4 @@ Para conocer todos los detalles sobre cómo instalar, configurar y actualizar el
 
 ## Instalación del Agente Puppet
 
-Para instalar el agente EduControl en los clientes mediante Puppet, consulta la documentación en [`Instalación del Agente`](agent/README.md).
+Para instalar el agente EduControl en los clientes mediante Puppet, consulta la documentación en [Instalación del Agente](agent/README.md).
