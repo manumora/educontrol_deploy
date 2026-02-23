@@ -1,5 +1,7 @@
 # Módulo de Inventario
 
+![Inventario General](./img/inventory.png)
+
 El sistema de inventario de EduControl está diseñado para mantener un registro preciso y actualizado de todo el parque informático de forma totalmente automatizada, minimizando la carga administrativa.
 
 ## Autoinventariado Dinámico
@@ -13,6 +15,8 @@ Cada vez que un equipo cliente se inicia, el agente local se comunica automátic
 El sistema es capaz de detectar si un equipo ya ha sido registrado previamente en la base de datos:
 - **Si el equipo es nuevo:** Se crea una nueva ficha de inventario con todos sus detalles.
 - **Si el equipo ya existe:** El servidor compara los datos recibidos con los almacenados. Si se detecta cualquier cambio (como una ampliación de memoria RAM, cambio de disco duro o actualización del sistema), la información se **actualiza automáticamente** para reflejar el estado real del equipo en ese preciso instante.
+
+![Detalle de Inventario](./img/inventory_detail.png)
 
 ## Base de Datos de Fabricantes
 

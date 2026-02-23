@@ -1,5 +1,7 @@
 # Módulo de Mapas Interactivos
 
+![Mapa EduControl](./img/map.png)
+
 El módulo de Mapas de EduControl proporciona una interfaz visual e interactiva que permite a los administradores gestionar el parque informático basándose en su ubicación física real dentro del centro educativo.
 
 ## Gestión de Espacios y Planos

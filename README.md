@@ -1,5 +1,7 @@
 # EduControl
 
+![EduControl Init](./docs/img/init.png)
+
 EduControl es una plataforma integral diseñada para la gestión, monitorización y control de equipamiento tecnológico, orientada a entornos educativos. Permite administrar de forma centralizada los dispositivos, visualizar su ubicación a través de mapas, gestionar usuarios y obtener métricas de uso.
 
 ## Tecnologías Utilizadas
