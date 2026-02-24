@@ -191,6 +191,13 @@ log_info "Descargando docker-compose.yaml..."
 curl -fsSL "${REPO_URL}/docker-compose.yaml" -o docker-compose.yaml
 log_success "docker-compose.yaml descargado"
 
+# Hacer backup del .env existente (con fecha) para evitar pérdidas accidentales
+if [ -f ".env" ]; then
+    ENV_BACKUP=".env.bak.$(date +%Y%m%d_%H%M%S)"
+    cp .env "$ENV_BACKUP"
+    log_success "Backup del .env guardado en: $ENV_BACKUP"
+fi
+
 # Crear .env si no existe
 if [ ! -f ".env" ]; then
     log_info "Descargando plantilla de configuración .env..."
