@@ -191,18 +191,6 @@ log_info "Descargando docker-compose.yaml..."
 curl -fsSL "${REPO_URL}/docker-compose.yaml" -o docker-compose.yaml
 log_success "docker-compose.yaml descargado"
 
-# Verificar integridad del .env si existe (podría estar corrupto
-# por una ejecución previa fallida).
-# Nota: se usa '^[A-Za-z_][A-Za-z0-9_]*=' para detectar líneas que NO
-# empiezan por una clave válida (no importa el valor, que puede tener espacios).
-if [ -f ".env" ]; then
-    INVALID_LINES=$(grep -v '^[[:space:]]*#' .env | grep -v '^[[:space:]]*$' | grep -cv '^[A-Za-z_][A-Za-z0-9_]*=')
-    if [ "$INVALID_LINES" -gt 0 ]; then
-        log_warning "El archivo .env parece estar corrupto ($INVALID_LINES líneas inválidas). Eliminando para regenerar..."
-        rm -f .env .env.bak
-    fi
-fi
-
 # Crear .env si no existe
 if [ ! -f ".env" ]; then
     log_info "Descargando plantilla de configuración .env..."
