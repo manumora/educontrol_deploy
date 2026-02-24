@@ -41,7 +41,7 @@ generate_password() {
 
 # Función para generar Django Secret Key
 generate_django_secret() {
-    openssl rand -base64 64 | tr -d "=+/" | cut -c1-50
+    openssl rand -base64 64 | tr -d '\n' | tr -d "=+/" | cut -c1-50
 }
 
 # ========================================
@@ -192,9 +192,11 @@ curl -fsSL "${REPO_URL}/docker-compose.yaml" -o docker-compose.yaml
 log_success "docker-compose.yaml descargado"
 
 # Verificar integridad del .env si existe (podría estar corrupto
-# por una ejecución previa fallida)
+# por una ejecución previa fallida).
+# Nota: se usa '^[A-Za-z_][A-Za-z0-9_]*=' para detectar líneas que NO
+# empiezan por una clave válida (no importa el valor, que puede tener espacios).
 if [ -f ".env" ]; then
-    INVALID_LINES=$(grep -v '^[[:space:]]*#' .env | grep -v '^[[:space:]]*$' | grep -v '^[A-Za-z_][A-Za-z0-9_]*=' | wc -l)
+    INVALID_LINES=$(grep -v '^[[:space:]]*#' .env | grep -v '^[[:space:]]*$' | grep -cv '^[A-Za-z_][A-Za-z0-9_]*=')
     if [ "$INVALID_LINES" -gt 0 ]; then
         log_warning "El archivo .env parece estar corrupto ($INVALID_LINES líneas inválidas). Eliminando para regenerar..."
         rm -f .env .env.bak
@@ -315,6 +317,11 @@ if [ ! -f ".env" ]; then
 else
     log_warning "El archivo .env ya existe. Se omite la configuración."
     log_info "Si deseas reconfigurar, elimina el archivo .env y ejecuta el script nuevamente."
+    # Cargar SERVER_IP desde el .env existente para el resumen final
+    SERVER_IP=$(grep '^SSL_IP=' .env | cut -d'=' -f2- | tr -d '\r')
+    if [ -z "$SERVER_IP" ]; then
+        SERVER_IP=$(hostname -I | awk '{print $1}')
+    fi
 fi
 
 # ========================================
