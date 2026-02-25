@@ -39,3 +39,4 @@ Después de ejecutar el script de instalación:
    ```bash
    puppet agent -t
    ```
+[Volver](../README.md)

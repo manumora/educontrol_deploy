@@ -6,6 +6,8 @@
   "heartbeat_interval": 30,
   "reconnect_delay": 5,
   "auto_inventory": true,
-  "auto_rename": true
+  "auto_rename": true,
+  "ssl_enabled": true,
+  "verify_ssl": false
 }
 

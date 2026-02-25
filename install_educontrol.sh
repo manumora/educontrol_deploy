@@ -4,6 +4,9 @@
 # Autor: Manuel Mora Gordillo
 # Fecha: 2025
 
+# URL pública del script (usada para la auto-re-ejecución cuando se lanza con curl | bash)
+SCRIPT_URL="https://raw.githubusercontent.com/manumora/educontrol_deploy/refs/heads/main/install_educontrol.sh"
+
 set -e  # Detener el script si hay algún error
 
 # Colores para mensajes
@@ -38,7 +41,7 @@ generate_password() {
 
 # Función para generar Django Secret Key
 generate_django_secret() {
-    openssl rand -base64 64 | tr -d "=+/" | cut -c1-50
+    openssl rand -base64 64 | tr -d '\n' | tr -d "=+/" | cut -c1-50
 }
 
 # ========================================
@@ -51,6 +54,23 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 log_success "Usuario root verificado"
+
+# Cuando el script se lanza via 'curl | bash', stdin está ocupado por el pipe
+# y los 'read' interactivos no pueden leer del teclado.
+# Solución: descargarse a un fichero temporal y re-ejecutarse.
+# Usamos _EDUCONTROL_REEXEC como flag para evitar bucles infinitos
+# (no se puede confiar solo en [ -t 0 ] porque en algunos entornos
+# /dev/tty no es reconocido como terminal por el proceso hijo).
+if [ ! -t 0 ] && [ "${_EDUCONTROL_REEXEC:-0}" != "1" ]; then
+    log_info "Detectado lanzamiento via pipe (curl | bash). Re-ejecutando desde fichero temporal..."
+    TMPSCRIPT=$(mktemp /tmp/install_educontrol_XXXXXX.sh)
+    curl -fsSL "${SCRIPT_URL}" -o "${TMPSCRIPT}"
+    chmod +x "${TMPSCRIPT}"
+    export _EDUCONTROL_REEXEC=1
+    exec bash "${TMPSCRIPT}" </dev/tty
+    # exec reemplaza el proceso: si llegamos aquí, algo falló
+    exit 1
+fi
 
 # ========================================
 # 2. VERIFICAR E INSTALAR DOCKER COMPOSE
@@ -68,13 +88,50 @@ elif command -v docker-compose &> /dev/null; then
 else
     log_warning "Docker Compose no está instalado. Procediendo a instalar..."
     
-    # Verificar si Docker está instalado
+    # Verificar si Docker está instalado; si no, instalarlo automáticamente
     if ! command -v docker &> /dev/null; then
-        log_error "Docker no está instalado. Por favor, instala Docker primero."
-        log_info "Visita: https://docs.docker.com/engine/install/"
-        exit 1
+        log_warning "Docker no está instalado. Procediendo a instalar Docker..."
+
+        # Actualizar índice de paquetes e instalar dependencias
+        apt-get update -y
+        apt-get install -y \
+            ca-certificates \
+            curl \
+            gnupg \
+            lsb-release
+
+        # Añadir clave GPG oficial de Docker
+        install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/$(. /etc/os-release && echo "$ID")/gpg \
+            | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        chmod a+r /etc/apt/keyrings/docker.gpg
+
+        # Añadir repositorio de Docker
+        echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+            https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") \
+            $(lsb_release -cs) stable" \
+            | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        # Instalar Docker Engine
+        apt-get update -y
+        apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+        # Habilitar e iniciar Docker
+        systemctl enable docker
+        systemctl start docker
+
+        log_success "Docker instalado correctamente"
+
+        # Docker Compose plugin ya viene incluido; configurar comando y salir de este bloque
+        DOCKER_COMPOSE_CMD="docker compose"
+        docker compose version
     fi
-    
+
+    if [ -n "$DOCKER_COMPOSE_CMD" ]; then
+        : # Docker Compose ya configurado junto con la instalación de Docker
+    else
+
     # Instalar Docker Compose plugin
     log_info "Instalando Docker Compose plugin..."
     DOCKER_CONFIG=${DOCKER_CONFIG:-/usr/local/lib/docker}
@@ -104,6 +161,7 @@ else
     log_success "Docker Compose instalado correctamente"
     DOCKER_COMPOSE_CMD="docker compose"
     docker compose version
+    fi # fin if DOCKER_COMPOSE_CMD
 fi
 
 # ========================================
@@ -132,6 +190,13 @@ REPO_URL="https://raw.githubusercontent.com/manumora/educontrol_deploy/refs/head
 log_info "Descargando docker-compose.yaml..."
 curl -fsSL "${REPO_URL}/docker-compose.yaml" -o docker-compose.yaml
 log_success "docker-compose.yaml descargado"
+
+# Hacer backup del .env existente (con fecha) para evitar pérdidas accidentales
+if [ -f ".env" ]; then
+    ENV_BACKUP=".env.bak.$(date +%Y%m%d_%H%M%S)"
+    cp .env "$ENV_BACKUP"
+    log_success "Backup del .env guardado en: $ENV_BACKUP"
+fi
 
 # Crear .env si no existe
 if [ ! -f ".env" ]; then
@@ -288,6 +353,11 @@ if [ ! -f ".env" ]; then
 else
     log_warning "El archivo .env ya existe. Se omite la configuración."
     log_info "Si deseas reconfigurar, elimina el archivo .env y ejecuta el script nuevamente."
+    # Cargar SERVER_IP desde el .env existente para el resumen final
+    SERVER_IP=$(grep '^SSL_IP=' .env | cut -d'=' -f2- | tr -d '\r')
+    if [ -z "$SERVER_IP" ]; then
+        SERVER_IP=$(hostname -I | awk '{print $1}')
+    fi
 fi
 
 # ========================================
@@ -307,9 +377,11 @@ if [ -f "frontend/certs/server.key" ] && [ -f "frontend/certs/server.crt" ]; the
 else
     log_warning "Los certificados SSL no existen. Generando certificados autofirmados..."
     
-    # Cargar variables del .env si existen
+    # Leer solo las variables SSL del .env (sin source para evitar
+    # que valores con caracteres especiales se ejecuten como comandos)
     if [ -f .env ]; then
-        export $(grep -v '^#' .env | grep -v '^$' | xargs -0)
+        SSL_DOMAIN=$(grep '^SSL_DOMAIN=' .env | cut -d'=' -f2- | tr -d '\r')
+        SSL_IP=$(grep '^SSL_IP='     .env | cut -d'=' -f2- | tr -d '\r')
     fi
     
     # Establecer valores por defecto si no están en .env
@@ -397,7 +469,7 @@ echo ""
 echo "3. Accede a EduControl en:"
 echo "   https://${SERVER_IP}:7579/"
 echo ""
-echo "4. Las credenciales y configuración están en:"
+echo "4. La configuración está en:"
 echo "   ${INSTALL_DIR}/.env"
 echo ""
 echo "=========================================="

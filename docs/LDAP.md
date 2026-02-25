@@ -15,6 +15,8 @@ Administración de los objetos de equipo registrados en el directorio. Esta gest
 - **Soporte Multired:** Permite registrar equipos asignando IPs tanto de la **red troncal** del centro como de la numeración IP de la **red WiFi Educarex**.
 - **Gestión Inteligente de IPs:** Si al intentar registrar un nuevo equipo la dirección IP solicitada ya se encuentra ocupada, EduControl **recomienda automáticamente una IP alternativa** que esté libre, evitando conflictos de red.
 
+![Ejemplo de Alta de Dispositivo](./img/ldap.png)
+
 ### 3. Grupos de Red
 Gestión de los grupos de red.
 

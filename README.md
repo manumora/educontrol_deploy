@@ -1,5 +1,7 @@
 # EduControl
 
+![EduControl Init](./docs/img/init.png)
+
 EduControl es una plataforma integral diseñada para la gestión, monitorización y control de equipamiento tecnológico, orientada a entornos educativos. Permite administrar de forma centralizada los dispositivos, visualizar su ubicación a través de mapas, gestionar usuarios y obtener métricas de uso.
 
 ## Tecnologías Utilizadas
@@ -29,6 +31,20 @@ Para conocer todos los detalles sobre cómo instalar, configurar y actualizar el
 
 ---
 
-## Instalación del Agente Puppet
+## Instalación del Agente EduControl
 
-Para instalar el agente EduControl en los clientes mediante Puppet, consulta la documentación en [`Instalación del Agente`](agent/README.md).
+Para instalar el agente EduControl en los clientes mediante Puppet, consulta la documentación en [Instalación del Agente](agent/README.md).
+
+---
+
+## Descargo de Responsabilidad
+
+EduControl es un proyecto desarrollado con fines educativos e internos. Se distribuye **tal cual**, sin garantías de ningún tipo, expresas o implícitas.
+
+El autor no se hace responsable de:
+
+- Pérdidas de datos, daños en sistemas o cualquier perjuicio derivado del uso, correcto o incorrecto, de este software.
+- Problemas de seguridad que puedan surgir de una configuración inadecuada del entorno de despliegue.
+- La disponibilidad, continuidad o actualización del proyecto.
+
+El uso de EduControl en entornos de producción queda bajo la **exclusiva responsabilidad del administrador** que lo despliega. Se recomienda revisar la configuración, los certificados SSL y las credenciales antes de exponer el servicio en redes públicas.
