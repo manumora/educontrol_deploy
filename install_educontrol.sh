@@ -166,30 +166,71 @@ if [ ! -f ".env" ]; then
         log_success "IP del servidor detectada: $SERVER_IP"
     fi
 
-    # IP servidor LDAP
+    # IP servidor LDAP y contraseña — con prueba de conexión en bucle
     echo ""
     log_info "Configuración de LDAP"
     echo ""
-    read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER
-    while [ -z "$LDAP_SERVER" ] || [[ "$LDAP_SERVER" == \#* ]]; do
-        log_warning "La IP/dominio del servidor LDAP no puede estar vacía ni comenzar por '#'"
-        read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER
-    done
 
-    # Contraseña servidor LDAP
-    read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
-    echo ""
-    while [ -z "$LDAP_PASSWORD" ]; do
-        log_warning "La contraseña LDAP no puede estar vacía"
+    # Verificar e instalar ldap-utils si no está disponible
+    if ! command -v ldapsearch &> /dev/null; then
+        log_warning "El comando 'ldapsearch' no está instalado. Instalando ldap-utils..."
+        if command -v apt-get &> /dev/null; then
+            apt-get install -y ldap-utils > /dev/null 2>&1
+        elif command -v yum &> /dev/null; then
+            yum install -y openldap-clients > /dev/null 2>&1
+        elif command -v dnf &> /dev/null; then
+            dnf install -y openldap-clients > /dev/null 2>&1
+        else
+            log_error "No se pudo instalar ldap-utils: gestor de paquetes no reconocido."
+            log_error "Instala manualmente el paquete 'ldap-utils' (Debian/Ubuntu) o 'openldap-clients' (RHEL/CentOS/Fedora) y vuelve a ejecutar el script."
+            exit 1
+        fi
+
+        if ! command -v ldapsearch &> /dev/null; then
+            log_error "La instalación de ldap-utils falló. Instálalo manualmente y vuelve a ejecutar el script."
+            exit 1
+        fi
+        log_success "ldap-utils instalado correctamente"
+    else
+        log_success "ldapsearch ya está disponible"
+    fi
+
+    LDAP_BIND_DN="cn=admin,ou=People,dc=instituto,dc=extremadura,dc=es"
+    LDAP_OK=false
+
+    while [ "$LDAP_OK" = false ]; do
+        # Solicitar servidor
+        read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER
+        while [ -z "$LDAP_SERVER" ] || [[ "$LDAP_SERVER" == \#* ]]; do
+            log_warning "La IP/dominio del servidor LDAP no puede estar vacía ni comenzar por '#'"
+            read -rp "Ingresa la IP o dominio del servidor LDAP: " LDAP_SERVER
+        done
+
+        # Solicitar contraseña
         read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
         echo ""
-    done
+        while [ -z "$LDAP_PASSWORD" ]; do
+            log_warning "La contraseña LDAP no puede estar vacía"
+            read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
+            echo ""
+        done
 
-    # Comprobación extra: no continuar si falta info de LDAP
-    if [ -z "$LDAP_SERVER" ] || [ -z "$LDAP_PASSWORD" ]; then
-        log_error "La configuración de LDAP está incompleta. Abortando."
-        exit 1
-    fi
+        # Prueba de conexión LDAP
+        log_info "Probando conexión LDAP con el servidor $LDAP_SERVER..."
+        if ldapsearch -x -H "ldap://${LDAP_SERVER}" \
+                      -D "$LDAP_BIND_DN" \
+                      -w "$LDAP_PASSWORD" \
+                      -b "" \
+                      -s base \
+                      "(objectclass=*)" > /dev/null 2>&1; then
+            log_success "Conexión LDAP exitosa"
+            LDAP_OK=true
+        else
+            log_error "No se pudo conectar al servidor LDAP con los datos proporcionados."
+            log_warning "Comprueba la IP/dominio del servidor y la contraseña, e inténtalo de nuevo."
+            echo ""
+        fi
+    done
 
     # ========================================
     # 6. GENERAR PASSWORDS
