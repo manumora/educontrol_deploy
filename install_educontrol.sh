@@ -73,7 +73,28 @@ if [ ! -t 0 ] && [ "${_EDUCONTROL_REEXEC:-0}" != "1" ]; then
 fi
 
 # ========================================
-# 2. VERIFICAR E INSTALAR DOCKER COMPOSE
+# 2. DETENER CONTENEDORES EXISTENTES
+# ========================================
+log_info "Comprobando si hay contenedores de EduControl en ejecución..."
+
+EDUCONTROL_CONTAINERS=("educontrol_backend" "educontrol_postgres" "educontrol_frontend" "educontrol_redis")
+STOPPED_ANY=false
+
+for CONTAINER in "${EDUCONTROL_CONTAINERS[@]}"; do
+    if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$CONTAINER"; then
+        log_warning "Contenedor '$CONTAINER' está en ejecución. Deteniéndolo..."
+        docker stop "$CONTAINER" > /dev/null
+        log_success "Contenedor '$CONTAINER' detenido"
+        STOPPED_ANY=true
+    fi
+done
+
+if [ "$STOPPED_ANY" = false ]; then
+    log_success "No hay contenedores de EduControl en ejecución"
+fi
+
+# ========================================
+# 3. VERIFICAR E INSTALAR DOCKER COMPOSE
 # ========================================
 log_info "Verificando instalación de Docker Compose..."
 
