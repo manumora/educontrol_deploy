@@ -23,6 +23,7 @@ El sistema se estructura en varios módulos fundamentales. A continuación se in
 - **[Inventario](./docs/INVENTORY.md)**: Gestión del hardware, características y software de todos los dispositivos registrados en la red.
 - **[LDAP](./docs/LDAP.md)**: Módulo de integración con el servidor LDAP para la gestión de usuarios y dispositivos.
 - **[Mapas](./docs/MAPS.md)**: Interfaz para la representación visual y localización física de los equipos sobre los planos del centro educativo.
+- **[Servidor](./docs/SERVER.md)**: Control y mantenimiento del servidor principal del centro educativo mediante diversas operaciones automatizadas.
 - **[Documentos](./docs/REPORTS.md)**: Herramienta para la generación de documentos.
 
 ## Instalación del Servidor EduControl
