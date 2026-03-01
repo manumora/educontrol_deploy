@@ -60,7 +60,7 @@ class educontrol_agent () {
     source  => 'puppet:///modules/educontrol_agent/agent_config.json',
     owner   => 'root',
     group   => 'root',
-    mode    => '0644',
+    mode    => '0600',
     require => [
       File['/etc/educontrol'],
       Exec['install-educontrol-agent'],
