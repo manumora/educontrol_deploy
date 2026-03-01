@@ -26,4 +26,9 @@ El agente posee una característica inteligente de autorenombrado. Durante su in
 - Si el equipo es encontrado en LDAP, el agente extrae el nombre de host (*hostname*) asignado oficialmente en el directorio.
 - A continuación, se **autorenombra** el equipo de manera transparente para reflejar exactamente el identificador oficial de LDAP. Además dicho nombre se actualiza en el inventario de EduControl manteniendo el inventario organizado automáticamente sin intervención manual.
 
+### 5. Resolución de Problemas de Certificados (Puppet)
+El agente de EduControl monitoriza proactivamente el estado del agente **Puppet**. Si detecta que este se encuentra bloqueado por problemas de certificados, el sistema actúa de forma automática:
+- **Limpieza Local:** El agente borra el certificado en el propio equipo.
+- **Sincronización con el Servidor:** Se comunica la incidencia a EduControl Server, el cual envía los comandos necesarios al servidor principal para eliminar también allí el certificado, permitiendo que Puppet vuelva a funcionar correctamente de manera transparente.
+
 [Volver](../README.md)
