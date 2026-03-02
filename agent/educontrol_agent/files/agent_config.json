@@ -8,6 +8,7 @@
   "auto_inventory": true,
   "auto_rename": true,
   "ssl_enabled": true,
-  "verify_ssl": false
+  "verify_ssl": false,
+  "vnc_enabled": true,
+  "puppet_check_enabled": true
 }
-
