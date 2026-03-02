@@ -243,10 +243,10 @@ if [ ! -f ".env" ]; then
     fi
     if [ -z "$SERVER_IP" ]; then
         log_warning "No se pudo detectar la IP automáticamente"
-        read -p "Ingresa la IP o dominio del servidor manualmente: " SERVER_IP
+        read -rp "Ingresa la IP o dominio del servidor manualmente: " SERVER_IP
         while [ -z "$SERVER_IP" ]; do
             log_warning "La IP/dominio no puede estar vacía"
-            read -p "Ingresa la IP o dominio del servidor: " SERVER_IP
+            read -rp "Ingresa la IP o dominio del servidor: " SERVER_IP
         done
     else
         log_success "IP del servidor detectada: $SERVER_IP"
@@ -293,26 +293,31 @@ if [ ! -f ".env" ]; then
         done
 
         # Solicitar contraseña
-        read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
+        IFS= read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
         echo ""
         while [ -z "$LDAP_PASSWORD" ]; do
             log_warning "La contraseña LDAP no puede estar vacía"
-            read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
+            IFS= read -rsp "Ingresa la contraseña del servidor LDAP: " LDAP_PASSWORD
             echo ""
         done
 
         # Prueba de conexión LDAP
         log_info "Probando conexión LDAP con el servidor $LDAP_SERVER..."
-        if ldapsearch -x -H "ldap://${LDAP_SERVER}" \
-                      -D "$LDAP_BIND_DN" \
-                      -w "$LDAP_PASSWORD" \
-                      -b "" \
-                      -s base \
-                      "(objectclass=*)" > /dev/null 2>&1; then
+        
+        # Capturar errores de ldapsearch para mostrar en caso de fallo
+        LDAP_ERROR=$(ldapsearch -x -H "ldap://${LDAP_SERVER}" \
+                       -D "$LDAP_BIND_DN" \
+                       -w "$LDAP_PASSWORD" \
+                       -b "" \
+                       -s base \
+                       "(objectclass=*)" 2>&1 > /dev/null)
+        
+        if [ $? -eq 0 ]; then
             log_success "Conexión LDAP exitosa"
             LDAP_OK=true
         else
             log_error "No se pudo conectar al servidor LDAP con los datos proporcionados."
+            [ -n "$LDAP_ERROR" ] && echo -e "${RED}Error retornado:${NC}\n$LDAP_ERROR"
             log_warning "Comprueba la IP/dominio del servidor y la contraseña, e inténtalo de nuevo."
             echo ""
         fi
@@ -335,36 +340,41 @@ if [ ! -f ".env" ]; then
     cp .env .env.bak
 
     # Usar awk para reemplazar valores de forma segura, incluso con caracteres especiales
-    awk -v pg_pass="$POSTGRES_PASSWORD" \
-        -v dj_key="$DJANGO_SECRET_KEY" \
-        -v server_ip="$SERVER_IP" \
-        -v ldap_srv="$LDAP_SERVER" \
-        -v ldap_pass="$LDAP_PASSWORD" '
+    # Exportamos las variables para que awk las lea de ENVIRON y evitar problemas de interpretación de escapes de la shell o de awk -v
+    export POSTGRES_PASSWORD DJANGO_SECRET_KEY SERVER_IP LDAP_SERVER LDAP_PASSWORD
+    awk '
     BEGIN {
-        # Escapar caracteres especiales para printf
-        gsub(/\\/, "\\\\", pg_pass)
-        gsub(/\\/, "\\\\", dj_key)
-        gsub(/\\/, "\\\\", ldap_pass)
+        pg_pass = ENVIRON["POSTGRES_PASSWORD"]
+        dj_key = ENVIRON["DJANGO_SECRET_KEY"]
+        server_ip = ENVIRON["SERVER_IP"]
+        ldap_srv = ENVIRON["LDAP_SERVER"]
+        ldap_pass = ENVIRON["LDAP_PASSWORD"]
+
+        # Escapar el signo $ duplicándolo ($$) para que Docker Compose no intente interpolarlo
+        # y lo trate como un literal.
+        gsub(/\$/, "$$", ldap_pass)
+        gsub(/\$/, "$$", pg_pass)
+        gsub(/\$/, "$$", dj_key)
     }
     {
         if ($0 ~ /^POSTGRES_PASSWORD=/) {
-            print "POSTGRES_PASSWORD=" pg_pass
+            print "POSTGRES_PASSWORD=\"" pg_pass "\""
         } else if ($0 ~ /^DJANGO_SECRET_KEY=/) {
-            print "DJANGO_SECRET_KEY=" dj_key
+            print "DJANGO_SECRET_KEY=\"" dj_key "\""
         } else if ($0 ~ /^DJANGO_ALLOWED_HOSTS=/) {
-            print "DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 " server_ip
+            print "DJANGO_ALLOWED_HOSTS=\"localhost 127.0.0.1 " server_ip "\""
         } else if ($0 ~ /^CSRF_TRUSTED_ORIGINS=/) {
-            print "CSRF_TRUSTED_ORIGINS=https://" server_ip ":7579"
+            print "CSRF_TRUSTED_ORIGINS=\"https://" server_ip ":7579\""
         } else if ($0 ~ /^CORS_ALLOWED_ORIGINS=/) {
-            print "CORS_ALLOWED_ORIGINS=https://" server_ip ":7579"
+            print "CORS_ALLOWED_ORIGINS=\"https://" server_ip ":7579\""
         } else if ($0 ~ /^SSL_DOMAIN=/) {
-            print "SSL_DOMAIN=" server_ip
+            print "SSL_DOMAIN=\"" server_ip "\""
         } else if ($0 ~ /^SSL_IP=/) {
-            print "SSL_IP=" server_ip
+            print "SSL_IP=\"" server_ip "\""
         } else if ($0 ~ /^AUTH_LDAP_SERVER=/) {
-            print "AUTH_LDAP_SERVER=" ldap_srv
+            print "AUTH_LDAP_SERVER=\"" ldap_srv "\""
         } else if ($0 ~ /^AUTH_LDAP_PASSWORD=/) {
-            print "AUTH_LDAP_PASSWORD=" ldap_pass
+            print "AUTH_LDAP_PASSWORD=\"" ldap_pass "\""
         } else {
             print $0
         }
