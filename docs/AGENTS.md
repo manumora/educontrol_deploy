@@ -46,7 +46,7 @@ El comportamiento de autorenombrado puede habilitarse o deshabilitarse desde la 
 El agente de EduControl monitoriza proactivamente el estado del agente **Puppet**. Si detecta que este se encuentra bloqueado por problemas de certificados, el sistema actúa de forma automática:
 - **Limpieza Local:** El agente borra el certificado en el propio equipo.
 - **Sincronización con el Servidor:** Se comunica la incidencia a EduControl Server, el cual envía los comandos necesarios al servidor principal para eliminar también allí el certificado, permitiendo que Puppet vuelva a funcionar correctamente de manera transparente.
-[!- **Auditoría:** El bloqueo de Puppet y las acciones realizadas (limpieza local y sincronización con el servidor) se registran en el sistema de auditoría de EduControl, incluyendo marcas temporales y el identificador del agente que originó la acción.]
+- **Auditoría:** El bloqueo de Puppet y las acciones realizadas (limpieza local y sincronización con el servidor) se registran en el sistema de auditoría de EduControl, incluyendo marcas temporales y el identificador de la entidad que originó la acción.
 
 ![Puppet atascado](https://raw.githubusercontent.com/manumora/educontrol_deploy/refs/heads/main/docs/img/puppet_lock.png)
 
