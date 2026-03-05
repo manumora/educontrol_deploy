@@ -13,6 +13,20 @@
 ##############################################################################
 set -e
 
+# URL pública del script para auto-re-ejecución
+SCRIPT_URL="https://raw.githubusercontent.com/manumora/educontrol_deploy/main/agent/install_agent_manual.sh"
+
+# Manejo de ejecución vía pipe (curl | bash)
+if [ ! -t 0 ] && [ "${_AGENT_INSTALL_REEXEC:-0}" != "1" ]; then
+    log_info "Detectado lanzamiento via pipe. Re-ejecutando desde fichero temporal..."
+    TMPSCRIPT=$(mktemp /tmp/install_agent_XXXXXX.sh)
+    curl -fsSL "${SCRIPT_URL}" -o "${TMPSCRIPT}"
+    chmod +x "${TMPSCRIPT}"
+    export _AGENT_INSTALL_REEXEC=1
+    exec bash "${TMPSCRIPT}" </dev/tty
+    exit 1
+fi
+
 # Colores para la interfaz
 RED='\033[0;31m'
 GREEN='\033[0;32m'
