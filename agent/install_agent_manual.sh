@@ -61,7 +61,7 @@ while [[ -z "$TOKEN" ]]; do
 done
 
 # 3. Variables de instalación
-VERSION=$(curl -fsSL https://raw.githubusercontent.com/manumora/educontrol_deploy/refs/heads/main/version)
+VERSION=$(curl -fsSL https://raw.githubusercontent.com/manumora/educontrol_deploy/refs/heads/main/agent/version)
 
 if [ -z "$VERSION" ]; then
     log_error "Error: No se pudo obtener la versión."
