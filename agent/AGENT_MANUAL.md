@@ -22,7 +22,7 @@ curl -fsSL https://raw.githubusercontent.com/manumora/educontrol_deploy/main/age
 
 ### ¿Qué hace este script?
 
-1.  **Validación de entrada**: Te solicitará interactivamente la IP del servidor y el Token (si lo lanzas vía `curl | bash` el script se re-ejecutará automáticamente para permitir la entrada de datos).
+1.  **Validación de entrada**: Te solicitará interactivamente la IP del servidor y el Token.
 2.  **Descarga**: Obtiene la última versión del paquete `.deb` directamente desde el repositorio oficial.
 3.  **Instalación**: Instala el paquete y sus dependencias mediante `apt`.
 4.  **Configuración**: Edita el archivo `/etc/educontrol/agent_config.json` sustituyendo los valores predeterminados por los que hayas introducido.
