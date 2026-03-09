@@ -20,6 +20,10 @@ Los mapas no son estáticos; ofrecen información viva sobre el estado de cada p
 
 Desde la propia interfaz del mapa, el administrador puede interactuar directamente con los dispositivos:
 - **Acceso Remoto:** Lanzar directamente sesiones de **Terminal** o **VNC** seleccionando el equipo en el plano.
+- **Terminal Multi-dispositivo:** Posibilidad de seleccionar un grupo de equipos sobre el mapa para abrir sesiones de terminal en todos ellos de forma simultánea. Esta funcionalidad es muy útil para ejecutar comandos rápidos por zonas específicas del centro.
+
+![Terminal Masiva desde Mapa](./img/map_terminal.png)
+
 - **Historial de Sesiones:** Consultar el histórico de usuarios que han utilizado un equipo específico.
 - **Acciones Masivas:** EduControl permite realizar operaciones y lanzar comandos de forma masiva a grupos de equipos seleccionados directamente desde la vista de mapa, optimizando las tareas de mantenimiento por aulas o zonas.
 
