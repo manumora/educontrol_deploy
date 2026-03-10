@@ -481,6 +481,10 @@ echo ""
 log_info "Descargando imágenes de Docker..."
 $DOCKER_COMPOSE_CMD pull
 
+# Limpiar entorno previo (redes y contenedores) para evitar fallos de conexión (ej. con Redis)
+log_info "Asegurando entorno limpio antes de iniciar..."
+$DOCKER_COMPOSE_CMD down || true
+
 # Iniciar contenedores
 log_info "Levantando servicios..."
 $DOCKER_COMPOSE_CMD up -d
