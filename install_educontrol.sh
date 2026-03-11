@@ -509,5 +509,20 @@ echo "   ${INSTALL_DIR}/.env"
 echo ""
 echo "=========================================="
 
+# ========================================
+# 10. CONFIGURAR PKGSYNC (SI EXISTE)
+# ========================================
+if [ -f "/etc/pkgsync/mayhave" ]; then
+    log_info "Detectado /etc/pkgsync/mayhave. Añadiendo dependencias..."
+    if ! grep -q "^docker\.io$" /etc/pkgsync/mayhave; then
+        echo "docker.io" >> /etc/pkgsync/mayhave
+        log_success "Añadido docker.io a /etc/pkgsync/mayhave"
+    fi
+    if ! grep -q "^educontrol-agent$" /etc/pkgsync/mayhave; then
+        echo "educontrol-agent" >> /etc/pkgsync/mayhave
+        log_success "Añadido educontrol-agent a /etc/pkgsync/mayhave"
+    fi
+fi
+
 echo ""
 log_success "Script de instalación finalizado"

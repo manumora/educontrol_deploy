@@ -78,4 +78,8 @@ class educontrol_agent () {
       File['/etc/educontrol/agent_config.json'],
     ],
   }
+
+  addmayhave { "/tmp/educontrol-agent_${version}_all.deb":
+    paquete => "educontrol-agent",
+  }
 }
