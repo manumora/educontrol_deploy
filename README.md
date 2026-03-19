@@ -24,6 +24,7 @@ El sistema se estructura en varios módulos fundamentales. A continuación se in
 - **[LDAP](./docs/LDAP.md)**: Módulo de integración con el servidor LDAP para la gestión de usuarios y dispositivos.
 - **[Mapas](./docs/MAPS.md)**: Interfaz para la representación visual y localización física de los equipos sobre los planos del centro educativo.
 - **[Servidor](./docs/SERVER.md)**: Control y mantenimiento del servidor principal del centro educativo mediante diversas operaciones automatizadas.
+- **[Automatizaciones](./docs/AUTOMATIONS.md)**: Se pueden ordenar a los agentes a ejecutar comandos y scripts en los equipos remotos.
 - **[Documentos](./docs/REPORTS.md)**: Herramienta para la generación de documentos.
 
 ## Instalación del Servidor EduControl
@@ -32,9 +33,15 @@ Para conocer todos los detalles sobre cómo instalar, configurar y actualizar el
 
 ---
 
-## Instalación del Agente EduControl
+## Instalación del Agente EduControl - Puppet
 
-Para instalar el agente EduControl en los clientes mediante Puppet, consulta la documentación en [Instalación del Agente](agent/README.md).
+Para instalar el agente EduControl en los clientes mediante Puppet, consulta la documentación en [Instalación Puppet](agent/README.md).
+
+---
+
+## Instalación del Agente EduControl - Manual
+
+Para instalar el agente EduControl en los clientes de forma manual, consulta la documentación en [Instalación Manual](agent/AGENT_MANUAL.md).
 
 ---
 

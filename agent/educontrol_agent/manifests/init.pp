@@ -27,7 +27,7 @@
 class educontrol_agent () {
 
   # Versión del agente
-  $version = '1.0.24'
+  $version = '1.0.31'
 
   # Asegurar que el directorio existe
   file { '/etc/educontrol':
@@ -77,5 +77,9 @@ class educontrol_agent () {
       Exec['install-educontrol-agent'],
       File['/etc/educontrol/agent_config.json'],
     ],
+  }
+
+  addmayhave { "/tmp/educontrol-agent_${version}_all.deb":
+    paquete => "educontrol-agent",
   }
 }
