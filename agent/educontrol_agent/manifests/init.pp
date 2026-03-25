@@ -27,7 +27,7 @@
 class educontrol_agent () {
 
   # Versión del agente
-  $version = '1.0.33'
+  $version = '1.0.34'
 
   # Asegurar que el directorio existe
   file { '/etc/educontrol':
@@ -79,7 +79,9 @@ class educontrol_agent () {
     ],
   }
 
-  addmayhave { "/tmp/educontrol-agent_${version}_all.deb":
-    paquete => "educontrol-agent",
+  exec { 'insertar_educontrol_agent':
+    command => '/usr/bin/echo "educontrol-agent" >> /etc/pkgsync/mayhave',
+    onlyif  => '/usr/bin/test -f /etc/pkgsync/mayhave',
+    unless  => '/usr/bin/grep -Fxq "educontrol-agent" /etc/pkgsync/mayhave',
   }
 }
