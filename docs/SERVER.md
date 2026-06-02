@@ -2,6 +2,10 @@
 
 Este módulo permite realizar el mantenimiento del servidor principal del centro educativo directamente desde la plataforma.
 
+> **Importante:** Para que EduControl Server pueda realizar operaciones sobre el servidor, es necesario tener instalado previamente el agente en el propio servidor principal y, además, indicar cuál es el agente servidor en el menú "Servidor->Agente".
+
+![Selección del agente del servidor principal](./img/agent_server.png)
+
 ## Operaciones de Mantenimiento
 
 Desde EduControl se llevarán a cabo diferentes operaciones de mantenimiento para asegurar el correcto funcionamiento del sistema, tales como:
