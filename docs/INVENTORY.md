@@ -25,4 +25,26 @@ Además de los equipos individuales, EduControl gestiona de forma inteligente un
 - **Marcas y Modelos:** Durante el proceso de autoinventariado, el sistema extrae la información de marca y modelo de cada equipo.
 - **Normalización Automática:** Si el agente reporta un fabricante o modelo que no existía previamente en los registros globales, el sistema lo **autoinventaría** automáticamente en la base de datos de fabricantes, permitiendo una clasificación y filtrado de todos los recursos del centro.
 
+## Batería de los Equipos Portátiles
+
+Si el agente detecta que el equipo es un **portátil** (por el tipo de chasis del sistema), añade a su ficha de inventario el estado de la batería y lo mantiene actualizado durante toda la sesión:
+
+- **Carga actual:** porcentaje, si está conectado a la corriente y autonomía restante estimada.
+- **Salud:** capacidad máxima actual frente a la capacidad de diseño, ciclos de carga y el diagnóstico que ofrece el propio sistema operativo.
+- **Identificación:** fabricante, modelo, número de serie y tecnología de la celda.
+
+El estado de carga se envía por WebSocket cada 5 minutos (configurable con `battery_interval` en `agent_config.json`), de modo que la información se refresca sin necesidad de reiniciar el equipo ni de lanzar un inventario completo.
+
+### Visualización
+
+En las tarjetas de equipo (secciones de **Agentes** y **Panel de Aula**) los portátiles muestran un icono de batería con su porcentaje:
+
+- 🟢 **Verde:** carga por encima del 50 %.
+- 🟡 **Ámbar:** carga entre el 20 % y el 50 %.
+- 🔴 **Rojo:** carga por debajo del 20 %.
+
+Al pasar el ratón por encima se despliega el detalle completo (carga, estado, autonomía, salud, ciclos y capacidad).
+
+Cuando la salud de la batería se degrada aparece además un **icono de aviso** junto al indicador, cuyo tooltip explica el problema concreto detectado: pérdida de capacidad respecto a la original, exceso de ciclos de carga o una advertencia del propio sistema operativo. Así se identifican de un vistazo los portátiles cuya batería conviene sustituir.
+
 [Volver](../README.md)

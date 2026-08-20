@@ -50,4 +50,36 @@ El agente de EduControl monitoriza proactivamente el estado del agente **Puppet*
 
 ![Puppet atascado](https://raw.githubusercontent.com/manumora/educontrol_deploy/refs/heads/main/docs/img/puppet_lock.png)
 
+### 6. Aviso de Cambio de Contraseña al Iniciar Sesión
+Cuando un profesor inicia sesión en un equipo, el agente puede consultar al servidor si debe cambiar su contraseña y, en caso afirmativo, abrirle el navegador directamente en la página de cambio.
+
+El aviso se muestra por cualquiera de estos motivos, todos ellos derivados de la [política de contraseñas](./LDAP.md#políticas-de-contraseñas):
+
+- **Debe cambiarla:** un administrador se la restableció y el directorio exige cambiarla (`pwdReset`).
+- **Ya ha caducado:** ha superado la caducidad definida en `pwdMaxAge`.
+- **Está a punto de caducar:** se encuentra dentro del periodo de aviso de `pwdExpireWarning`.
+
+El aviso se muestra en cada inicio de sesión mientras se cumpla alguno de esos motivos, y sólo en sesiones gráficas: en una consola de texto no hay navegador que abrir.
+
+**El usuario sabe por qué se le pide:** el agente añade el motivo a la dirección, de forma que la página de cambio de contraseña se abre ya en el formulario, con el usuario relleno y con un aviso que explica la situación en lenguaje llano («Un administrador ha restablecido tu contraseña…», «Tu contraseña caduca dentro de 5 días…»).
+
+**Auditoría:** cada vez que se abre el navegador a un usuario queda registrado en el módulo de Auditoría, indicando el equipo y el motivo. También se registran los intentos fallidos, por ejemplo si el escritorio todavía no estaba listo o el equipo no tiene Chrome instalado.
+
+Se configura desde `agent_config.json`:
+
+| Opción | Valor por defecto | Descripción |
+| --- | --- | --- |
+| `password_prompt_enabled` | `false` | Activa el aviso. **Viene desactivado**: hay que habilitarlo expresamente en los equipos donde se quiera. |
+| `password_prompt_url` | `https://educontrol.santaeulalia/change-password` | Dirección que se abre en el navegador. |
+| `password_prompt_delay` | `15` | Segundos de espera desde el inicio de sesión antes de abrir el navegador, para dar tiempo a que termine de arrancar el escritorio. |
+| `password_prompt_reasons` | los tres a `true` | Permite elegir qué motivos abren el navegador: `must_change`, `expired` y `expiring_soon`. Indicar sólo uno no desactiva los demás; para desactivar un motivo hay que ponerlo a `false` expresamente. |
+
+Por ejemplo, para avisar sólo cuando la contraseña ya sea inservible, sin molestar a quien todavía tiene margen:
+
+```json
+"password_prompt_reasons": {
+  "expiring_soon": false
+}
+```
+
 [Volver](../README.md)

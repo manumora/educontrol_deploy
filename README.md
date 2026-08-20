@@ -22,10 +22,14 @@ El sistema se estructura en varios módulos fundamentales. A continuación se in
 - **[Agentes](./docs/AGENTS.md)**: Encargados de la recolección de datos y la monitorización constante de los equipos cliente en tiempo real.
 - **[Inventario](./docs/INVENTORY.md)**: Gestión del hardware, características y software de todos los dispositivos registrados en la red.
 - **[LDAP](./docs/LDAP.md)**: Módulo de integración con el servidor LDAP para la gestión de usuarios y dispositivos.
+- **[Políticas de Contraseñas](./docs/PASSWORD_POLICY.md)**: Configuración y aplicación de la política de contraseñas del directorio, así como la consulta del estado de cada cuenta.
+- **[Cambio de Contraseña](./docs/CHANGE_PASSWORD.md)**: Web pública, sin autenticación, para que profesores y alumnos cambien o recuperen su contraseña.
 - **[Mapas](./docs/MAPS.md)**: Interfaz para la representación visual y localización física de los equipos sobre los planos del centro educativo.
 - **[Servidor](./docs/SERVER.md)**: Control y mantenimiento del servidor principal del centro educativo mediante diversas operaciones automatizadas.
 - **[Automatizaciones](./docs/AUTOMATIONS.md)**: Se pueden ordenar a los agentes a ejecutar comandos y scripts en los equipos remotos.
 - **[Documentos](./docs/REPORTS.md)**: Herramienta para la generación de documentos.
+- **[Mailing](./docs/MAILING.md)**: Configuración del servidor de correo y envío de correos masivos a los usuarios del centro.
+- **[Servidor MCP](./docs/MCP.md)**: Servidor Model Context Protocol que permite a agentes LLM interactuar con EduControl: ejecutar comandos en equipos remotos y consultar usuarios, inventario y auditoría.
 
 ## Instalación del Servidor EduControl
 
