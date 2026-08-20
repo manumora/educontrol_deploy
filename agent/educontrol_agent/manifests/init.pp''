@@ -38,7 +38,7 @@ class educontrol_agent () {
   }
 
   # Descargar el paquete .deb en el cliente
-  file { "/tmp/educontrol-agent_${version}_all.deb":
+  file { "/var/cache/educontrol-agent_${version}_all.deb":
     ensure => file,
     source => "puppet:///modules/educontrol_agent/educontrol-agent_${version}_all.deb",
     owner  => 'root',
@@ -49,10 +49,10 @@ class educontrol_agent () {
 
   # Instalar el paquete .deb
   exec { 'install-educontrol-agent':
-    command  => "/usr/bin/dpkg -i /tmp/educontrol-agent_${version}_all.deb || /usr/bin/apt-get install -f -y",
+    command  => "/usr/bin/dpkg -i /var/cache/educontrol-agent_${version}_all.deb || /usr/bin/apt-get install -f -y",
     unless   => "/usr/bin/dpkg-query -W -f='\${Status} \${Version}\n' educontrol-agent 2>/dev/null | /bin/grep -q '^install ok installed ${version}$'",
     provider => shell,
-    require  => File["/tmp/educontrol-agent_${version}_all.deb"],
+    require  => File["/var/cache/educontrol-agent_${version}_all.deb"],
   }
 
   # Descargar el archivo de configuración en el cliente
