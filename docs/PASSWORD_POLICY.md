@@ -49,7 +49,7 @@ Los valores por defecto con los que se crea son:
 
 Una vez instalada, el diálogo muestra el formulario con la configuración vigente, agrupada en cinco bloques: general, complejidad e historial, caducidad, bloqueo por intentos fallidos y comportamiento del usuario.
 
-![Edición de la política de contraseñas](./editar_politicas.png)
+![Edición de la política de contraseñas](./img/editar_politicas.png)
 
 Todos los valores son editables y se guardan directamente en el directorio. Los campos expresados en segundos, tal y como los almacena LDAP, muestran debajo su equivalencia en días, horas y minutos para no tener que calcularla a mano.
 

@@ -78,6 +78,8 @@ Por ejemplo, para avisar sólo cuando la contraseña ya sea inservible, sin mole
 
 ```json
 "password_prompt_reasons": {
+  "must_change": true,
+  "expired": true,
   "expiring_soon": false
 }
 ```

@@ -50,6 +50,8 @@ Pensado para cuando el usuario **no recuerda su contraseña actual**. Se resuelv
 
 #### 2.1 Solicitar un código de recuperación
 
+> Para que este envío funcione hace falta tener configurado el servidor de correo, tal y como se explica en [Mailing](./MAILING.md).
+
 El usuario introduce únicamente su nombre de usuario. EduControl:
 
 ![Solicitud de código de recuperación](./img/change_password_request_code.png)
