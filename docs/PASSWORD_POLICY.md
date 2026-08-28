@@ -2,29 +2,40 @@
 
 EduControl gestiona desde la propia interfaz la **política de contraseñas del directorio**, que es la que impone a los usuarios los requisitos de longitud, caducidad, historial y bloqueo por intentos fallidos.
 
-La política se corresponde con una entrada `pwdPolicy` del directorio:
+Existe una política independiente por cada colectivo, cada una con su propia entrada `pwdPolicy` del directorio:
 
-```
-cn=ppteachers,ou=policies,dc=instituto,dc=extremadura,dc=es
-```
+| Colectivo | Entrada `pwdPolicy` |
+| --- | --- |
+| Profesores | `cn=ppteachers,ou=policies,dc=instituto,dc=extremadura,dc=es` |
+| Alumnos | `cn=ppstudents,ou=policies,dc=instituto,dc=extremadura,dc=es` |
+| Personal no docente | `cn=ppstaff,ou=policies,dc=instituto,dc=extremadura,dc=es` |
+| Por defecto | `cn=default,ou=policies,dc=instituto,dc=extremadura,dc=es` |
 
 Es el *overlay* **ppolicy** de OpenLDAP quien la aplica realmente: EduControl se limita a crearla, editarla y asignarla a los usuarios mediante el atributo `pwdPolicySubentry` de cada cuenta.
 
-Se accede desde *LDAP* → *Usuarios*, botón **Políticas**, en la barra superior.
+La política **Por defecto** es distinta a las otras tres: no se asigna a ningún usuario mediante `pwdPolicySubentry`. Es la que el overlay usa automáticamente, a través del parámetro `olcPPolicyDefault` de su configuración, para cualquier cuenta que no tenga ninguna política propia asignada — de modo que ninguna cuenta se quede sin política real por accidente, en lugar de quedar sin ningún tipo de control.
+
+Se accede desde *LDAP* → *Usuarios*, botón **Políticas**, en la barra superior. Una vez instaladas, un desplegable **Colectivo** en la parte superior del diálogo (Profesores, Alumnos, Personal no docente o Por defecto; Profesores por defecto) determina sobre qué política se está consultando o editando en cada momento. Antes de instalar no hay nada entre lo que elegir —las cuatro se instalan a la vez—, así que el desplegable no se muestra.
 
 ## 1. Instalación
 
-Si la entrada no existe en el directorio, el diálogo no muestra el formulario: únicamente informa de que la política **no está instalada** y advierte de que, mientras siga así, no se aplica ninguna restricción de complejidad, caducidad ni bloqueo a las cuentas.
+Si ninguna de las políticas existe todavía en el directorio, el diálogo no muestra ni el desplegable de colectivo ni el formulario: únicamente informa de que las políticas **no están instaladas** y advierte de que, mientras siga así, no se aplica ninguna restricción de complejidad, caducidad ni bloqueo a ningún usuario.
 
 ![Política de contraseñas no instalada](./img/instalar_politicas.png)
 
-Con el botón **Instalar políticas** EduControl:
+El botón **Instalar políticas** no instala solo la del colectivo seleccionado en el desplegable: crea de una vez las **cuatro** políticas del centro, si todavía no existieran. Por cada una:
 
 1. Crea la rama `ou=policies` si todavía no existiera.
-2. Crea el objeto `pwdPolicy` con los valores por defecto de la tabla siguiente.
-3. **Aplica la política a todos los profesores** e informa a cuántos se les ha asignado.
+2. Crea el objeto `pwdPolicy` con sus valores por defecto (los de la tabla siguiente para Profesores; sin ninguna restricción para Alumnos, Personal no docente y Por defecto, ver más abajo).
+3. **Aplica la política a todos los usuarios de ese colectivo** e informa de a cuántos se les ha asignado — excepto la de **Por defecto**, que no se aplica a nadie explícitamente, tal y como se explica arriba.
 
-Los valores por defecto con los que se crea son:
+Si alguna de las cuatro ya estaba instalada, se deja tal cual: no es un error, simplemente se instalan las que faltaban.
+
+Crear las políticas es prácticamente instantáneo, pero aplicarlas a los usuarios puede tardar más, dependiendo de cuántos tenga el centro. Al terminar, un resumen muestra por separado cuántos profesores, alumnos y personal no docente han recibido la política, cuántos ya la tenían y cuántos han fallado.
+
+> Crear la entrada `cn=default` no basta por sí sola: para que el overlay realmente la use como respaldo, su configuración (`olcPPolicyDefault`, en `cn=config`) tiene que apuntar a `cn=default,ou=policies,dc=instituto,dc=extremadura,dc=es`. Esa configuración del overlay está fuera del alcance de EduControl —requiere acceso privilegiado a `cn=config`, no la cuenta LDAP habitual de la aplicación— y hay que aplicarla aparte, por ejemplo con `ldapmodify -Y EXTERNAL` sobre `passwords/ppolicy-overlay-update-default.ldif` si el overlay ya estaba instalado con un valor distinto.
+
+Los valores por defecto con los que se crea la política de **Profesores** son:
 
 | Atributo | Valor | Significado |
 | --- | --- | --- |
@@ -45,9 +56,11 @@ Los valores por defecto con los que se crea son:
 | `pwdMustChange` | `TRUE` | Obliga a cambiarla en el primer acceso tras un restablecimiento |
 | `pwdSafeModify` | `TRUE` | Exige la contraseña actual para poder cambiarla |
 
+Las políticas de **Alumnos**, **Personal no docente** y **Por defecto** se crean en cambio sin ninguna restricción: comprobación de calidad desactivada, sin longitud mínima, sin historial, sin caducidad y sin bloqueo por intentos fallidos (todos los valores numéricos a `0` y los interruptores `pwdLockout`, `pwdMustChange` y `pwdSafeModify` a `FALSE`; `pwdAllowUserChange` se deja en `TRUE` para que el usuario pueda seguir cambiando su propia contraseña). Sirven como punto de partida neutro: se pueden editar después igual que la de Profesores en cuanto el centro quiera empezar a exigir algo a esas cuentas.
+
 ## 2. Edición
 
-Una vez instalada, el diálogo muestra el formulario con la configuración vigente, agrupada en cinco bloques: general, complejidad e historial, caducidad, bloqueo por intentos fallidos y comportamiento del usuario.
+Una vez instalada, el diálogo muestra el formulario con la configuración vigente del colectivo seleccionado en el desplegable, agrupada en cinco bloques: general, complejidad e historial, caducidad, bloqueo por intentos fallidos y comportamiento del usuario.
 
 ![Edición de la política de contraseñas](./img/editar_politicas.png)
 
@@ -55,17 +68,17 @@ Todos los valores son editables y se guardan directamente en el directorio. Los 
 
 Cada modificación queda registrada en el módulo de Auditoría con el detalle de los atributos que han cambiado.
 
-Los cambios se aplican al momento a todos los profesores que ya tengan la política asignada: no hace falta volver a aplicarla.
+Los cambios se aplican al momento a todos los usuarios del colectivo seleccionado que ya tengan su política asignada: no hace falta volver a aplicarla.
 
-## 3. Aplicación a los profesores
+## 3. Aplicación a un colectivo
 
-Crear la política no basta: cada cuenta debe apuntar a ella. El botón **Aplicar políticas** recorre el directorio y asigna la política a **todos los profesores**, entendiendo por tales los usuarios cuyo directorio personal cuelga de `/home/profesor`, el mismo criterio con el que la plataforma calcula el tipo de usuario.
+Crear la política no basta: cada cuenta debe apuntar a ella. El botón **Aplicar políticas** recorre el directorio y asigna la política del colectivo seleccionado en el desplegable a **todos sus usuarios**, entendiendo por tales los usuarios cuyo directorio personal cuelga de `/home/profesor`, `/home/alumnos` o `/home/staff` según corresponda — el mismo criterio con el que la plataforma calcula el tipo de usuario. Con **Por defecto** seleccionada no aparece este botón: esa política no se asigna a ningún colectivo, es el propio overlay quien la usa automáticamente (ver [Instalación](#1-instalación)).
 
-Al terminar informa de a cuántos profesores se ha aplicado, cuántos ya la tenían y cuántos han fallado, con el detalle de los errores en su caso. Los usuarios que ya la tenían asignada no se modifican.
+Al terminar informa de a cuántos usuarios se ha aplicado, cuántos ya la tenían y cuántos han fallado, con el detalle de los errores en su caso. Los usuarios que ya la tenían asignada no se modifican.
 
 Es una operación que puede repetirse cuantas veces se quiera: conviene lanzarla después de dar de alta profesores fuera de las importaciones, ya que las importaciones de Rayuela y el alta manual de usuarios ya la asignan por su cuenta.
 
-En el módulo de [importación de profesores](./LDAP.md#módulo-de-importación) la asignación también se realiza automáticamente, pero ahí es opcional: un switch **Aplicar políticas de contraseñas**, activado por defecto, permite desmarcarla para ese envío en concreto. El switch aparece deshabilitado, con un icono de información explicando el motivo, cuando la política todavía no está instalada en el directorio.
+En los módulos de [importación de profesores y de alumnos](./LDAP.md#módulo-de-importación) la asignación también se realiza automáticamente, sin ninguna opción para desactivarla: todo profesor importado recibe `ppteachers` y todo alumno importado recibe `ppstudents`, siempre que la política correspondiente ya esté instalada en el directorio.
 
 ## 4. Estado de la cuenta de un usuario
 

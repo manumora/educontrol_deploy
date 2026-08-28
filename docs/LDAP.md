@@ -62,6 +62,8 @@ Al igual que con los profesores, se crea la cuenta de cada alumno con su contras
 
 Su particularidad es que **crea automáticamente los cursos y grupos que no existan** en el directorio: si un alumno pertenece a un grupo aún no dado de alta, EduControl lo crea y lo asigna, evitando tener que prepararlos de antemano.
 
+A los alumnos importados se les aplica además la [política de contraseñas](./PASSWORD_POLICY.md) `ppstudents` del centro.
+
 Opciones disponibles:
 
 - **Borrar los que no estén en el fichero:** da de baja a los alumnos que ya no figuran en la exportación.
