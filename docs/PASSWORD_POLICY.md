@@ -23,7 +23,7 @@ Si ninguna de las políticas existe todavía en el directorio, el diálogo no mu
 
 ![Política de contraseñas no instalada](./img/instalar_politicas.png)
 
-El botón **Instalar políticas** no instala solo la del colectivo seleccionado en el desplegable: crea de una vez las **cuatro** políticas del centro, si todavía no existieran. Por cada una:
+El botón **Instalar políticas** crea de una vez las **cuatro** políticas del centro, si todavía no existieran. Por cada una:
 
 1. Crea la rama `ou=policies` si todavía no existiera.
 2. Crea el objeto `pwdPolicy` con sus valores por defecto (los de la tabla siguiente para Profesores; sin ninguna restricción para Alumnos, Personal no docente y Por defecto, ver más abajo).
@@ -72,13 +72,11 @@ Los cambios se aplican al momento a todos los usuarios del colectivo seleccionad
 
 ## 3. Aplicación a un colectivo
 
-Crear la política no basta: cada cuenta debe apuntar a ella. El botón **Aplicar políticas** recorre el directorio y asigna la política del colectivo seleccionado en el desplegable a **todos sus usuarios**, entendiendo por tales los usuarios cuyo directorio personal cuelga de `/home/profesor`, `/home/alumnos` o `/home/staff` según corresponda — el mismo criterio con el que la plataforma calcula el tipo de usuario. Con **Por defecto** seleccionada no aparece este botón: esa política no se asigna a ningún colectivo, es el propio overlay quien la usa automáticamente (ver [Instalación](#1-instalación)).
+Que cada cuenta apunte a su política no requiere una acción manual aparte en el uso normal: al instalar las políticas (paso 1) ya se aplican de inmediato a todos los usuarios del colectivo correspondiente, y desde ese momento cualquier alta o cambio de tipo —ya sea a mano desde *Usuarios*, o mediante la importación de profesores o alumnos— asigna la política adecuada automáticamente, sin ninguna opción para desactivarlo.
 
-Al terminar informa de a cuántos usuarios se ha aplicado, cuántos ya la tenían y cuántos han fallado, con el detalle de los errores en su caso. Los usuarios que ya la tenían asignada no se modifican.
+El botón **Aplicar políticas** existe para los casos en los que una cuenta se haya quedado sin la política que le corresponde —por ejemplo, si se instaló la política después de dar de alta a algunos usuarios de otra forma, o tras un fallo puntual—: recorre el directorio y asigna la política del colectivo seleccionado en el desplegable a **todos sus usuarios**, entendiendo por tales los usuarios cuyo directorio personal cuelga de `/home/profesor`, `/home/alumnos` o `/home/staff` según corresponda — el mismo criterio con el que la plataforma calcula el tipo de usuario. Con **Por defecto** seleccionada no aparece este botón: esa política no se asigna a ningún colectivo, es el propio overlay quien la usa automáticamente (ver [Instalación](#1-instalación)).
 
-Es una operación que puede repetirse cuantas veces se quiera: conviene lanzarla después de dar de alta profesores fuera de las importaciones, ya que las importaciones de Rayuela y el alta manual de usuarios ya la asignan por su cuenta.
-
-En los módulos de [importación de profesores y de alumnos](./LDAP.md#módulo-de-importación) la asignación también se realiza automáticamente, sin ninguna opción para desactivarla: todo profesor importado recibe `ppteachers` y todo alumno importado recibe `ppstudents`, siempre que la política correspondiente ya esté instalada en el directorio.
+Al terminar informa de a cuántos usuarios se ha aplicado, cuántos ya la tenían y cuántos han fallado, con el detalle de los errores en su caso. Los usuarios que ya la tenían asignada no se modifican, así que es una operación segura de repetir cuantas veces se quiera, aunque no haga falta.
 
 ## 4. Estado de la cuenta de un usuario
 
