@@ -183,6 +183,7 @@ sudo iptables -A INPUT -p tcp --dport 8443 -j DROP
 |---|---|
 | `search_users(query, user_type, limit)` | Busca usuarios LDAP por nombre, uid o número de empleado |
 | `get_user_details(uid)` | Perfil completo de un usuario, con sus grupos de departamento/curso |
+| `get_user_password_status(uid)` | Estado de la contraseña de un usuario (bloqueo, caducidad, cambio forzado, intentos fallidos) e historial de cambios; devuelve fechas, nunca los hashes almacenados |
 | `search_groups(query, group_type, limit)` | Busca grupos LDAP (departamentos/clases) |
 | `get_group_members(cn, limit)` | Lista los miembros de un grupo |
 | `search_hosts(query, limit)` | Busca registros de host LDAP (DNS/DHCP) |

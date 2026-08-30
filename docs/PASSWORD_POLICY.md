@@ -33,7 +33,13 @@ Si alguna de las cuatro ya estaba instalada, se deja tal cual: no es un error, s
 
 Crear las políticas es prácticamente instantáneo, pero aplicarlas a los usuarios puede tardar más, dependiendo de cuántos tenga el centro. Al terminar, un resumen muestra por separado cuántos profesores, alumnos y personal no docente han recibido la política, cuántos ya la tenían y cuántos han fallado.
 
-> Crear la entrada `cn=default` no basta por sí sola: para que el overlay realmente la use como respaldo, su configuración (`olcPPolicyDefault`, en `cn=config`) tiene que apuntar a `cn=default,ou=policies,dc=instituto,dc=extremadura,dc=es`. Esa configuración del overlay está fuera del alcance de EduControl —requiere acceso privilegiado a `cn=config`, no la cuenta LDAP habitual de la aplicación— y hay que aplicarla aparte, por ejemplo con `ldapmodify -Y EXTERNAL` sobre `passwords/ppolicy-overlay-update-default.ldif` si el overlay ya estaba instalado con un valor distinto.
+> ⚠️ **Importante**: tras instalar las políticas queda un único paso más, y hay que darlo como root en el propio servidor LDAP para que las políticas empiecen a funcionar de verdad:
+>
+> ```
+> ldapmodify -Y EXTERNAL -H ldapi:/// -f ppolicy-overlay.ldif
+> ```
+>
+> El fichero [`ppolicy-overlay.ldif`](./assets/ppolicy-overlay.ldif) está listo para usarse tal cual.
 
 Los valores por defecto con los que se crea la política de **Profesores** son:
 
