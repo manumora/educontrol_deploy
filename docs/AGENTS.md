@@ -61,6 +61,8 @@ El aviso se muestra por cualquiera de estos motivos — en la práctica, cualqui
 - **Está a punto de caducar:** se encuentra dentro del periodo de aviso de `pwdExpireWarning`.
 - **Nunca ha cambiado la contraseña:** no hay ningún cambio de contraseña registrado desde que se creó la cuenta.
 
+**Debe cambiarla** y **Nunca ha cambiado la contraseña** sólo avisan si la política del colectivo del usuario tiene `pwdMustChange` activado: sin él, ni `pwdReset` se llega a hacer cumplir de verdad en el directorio, así que avisar igualmente sería tan inútil como el propio `pwdReset` sin aplicar. Con las políticas de Alumnos, Personal no docente y Por defecto tal como vienen instaladas (sin ninguna restricción, `pwdMustChange: FALSE`), no se avisará por ninguno de los dos motivos aunque la cuenta nunca se haya tocado.
+
 El aviso se muestra en cada inicio de sesión mientras se cumpla alguno de esos motivos, y sólo en sesiones gráficas: en una consola de texto no hay navegador que abrir.
 
 **El usuario sabe por qué se le pide:** el agente añade el motivo a la dirección, de forma que la página de cambio de contraseña se abre ya en el formulario, con el usuario relleno y con un aviso que explica la situación en lenguaje llano («Un administrador ha restablecido tu contraseña…», «Tu contraseña caduca dentro de 5 días…»).
