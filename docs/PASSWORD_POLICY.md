@@ -95,14 +95,28 @@ El panel de estado responde a las preguntas del día a día:
 - Si la cuenta está **bloqueada**, desde cuándo y si se desbloqueará sola o el bloqueo es indefinido.
 - Cuántas veces se ha **fallado la contraseña** y cuántos intentos quedan antes del bloqueo. Sólo se cuentan los fallos vigentes: los anteriores al intervalo de recuento ya han caducado.
 - Cuándo **caduca la contraseña** y cuánto falta, o si no caduca nunca.
-- Si el usuario **debe cambiarla** por habérsela restablecido un administrador.
+- Si el usuario **debe cambiarla** por habérsela restablecido un administrador — o por ser la contraseña con la que se dio de alta la cuenta (DNI, fecha de nacimiento...), ya que también la puso un administrador y no el propio usuario.
 - El **último acceso correcto**, los **accesos de gracia** consumidos, desde cuándo puede volver a cambiarla y las fechas de creación y última modificación de la cuenta.
+
+Encima de estos datos, unos chips resumen el estado de un vistazo (pueden combinarse varios a la vez, salvo donde se indica lo contrario):
+
+| Chip | Color | Cuándo aparece |
+| --- | --- | --- |
+| Bloqueada (indefinido) | rojo | Bloqueada y sin duración de bloqueo configurada — solo se desbloquea a mano |
+| Bloqueada | rojo | Bloqueada con duración configurada — se desbloqueará sola al vencer el plazo |
+| Contraseña caducada | rojo | Ha superado la caducidad configurada |
+| Caduca pronto | ámbar | Dentro del aviso de caducidad — excluyente con "Contraseña caducada" |
+| Debe cambiarla | azul | Un administrador restableció la contraseña |
+| Nunca cambiada | azul | El usuario nunca ha cambiado la contraseña con la que se le dio de alta |
+| Cuenta correcta | verde | Solo cuando ninguno de los anteriores aplica |
+
+"Contraseña caducada" y "Caduca pronto" nunca coinciden con "Nunca cambiada": sin un cambio de contraseña registrado no hay fecha desde la que calcular la caducidad.
 
 Cuando la cuenta está bloqueada aparece el botón **Desbloquear**, que borra el bloqueo y el contador de intentos fallidos sin esperar a que venza el plazo. La operación queda registrada en el módulo de Auditoría.
 
 La pantalla avisa además cuando el usuario **no tiene la política asignada** —y permite aplicársela individualmente— o cuando la política no existe todavía en el directorio.
 
-> El estado se obtiene de los atributos operativos que mantiene el overlay ppolicy. Si el directorio no los devuelve (porque las ACL no lo permiten, o porque el usuario no ha cambiado nunca su contraseña), el panel lo indica expresamente en lugar de dar la cuenta por correcta.
+> El estado se obtiene de los atributos operativos que mantiene el overlay ppolicy. Si las ACL del directorio no permiten leerlos, el panel lo indica expresamente en lugar de dar la cuenta por correcta. Esto es distinto de "Nunca cambiada": esa sí es una lectura fiable, solo que sin ningún cambio de contraseña registrado todavía.
 
 ## 5. Avisos en el listado
 

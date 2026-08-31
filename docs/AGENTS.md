@@ -53,11 +53,13 @@ El agente de EduControl monitoriza proactivamente el estado del agente **Puppet*
 ### 6. Aviso de Cambio de Contraseña al Iniciar Sesión
 Cuando un profesor inicia sesión en un equipo, el agente puede consultar al servidor si debe cambiar su contraseña y, en caso afirmativo, abrirle el navegador directamente en la página de cambio.
 
-El aviso se muestra por cualquiera de estos motivos, todos ellos derivados de la [política de contraseñas](./LDAP.md#políticas-de-contraseñas):
+El aviso se muestra por cualquiera de estos motivos — en la práctica, cualquier estado que no sea "cuenta correcta" en el panel de [Estado de la cuenta](./PASSWORD_POLICY.md#4-estado-de-la-cuenta-de-un-usuario), todos ellos derivados de la [política de contraseñas](./LDAP.md#políticas-de-contraseñas):
 
-- **Debe cambiarla:** un administrador se la restableció y el directorio exige cambiarla (`pwdReset`).
+- **Cuenta bloqueada:** ha superado los intentos fallidos permitidos (`pwdMaxFailure`). En la práctica es poco habitual verlo aquí, porque una cuenta bloqueada ya no puede iniciar sesión para empezar.
+- **Debe cambiarla:** un administrador se la restableció (o es la contraseña con la que se dio de alta la cuenta) y el directorio exige cambiarla (`pwdReset`).
 - **Ya ha caducado:** ha superado la caducidad definida en `pwdMaxAge`.
 - **Está a punto de caducar:** se encuentra dentro del periodo de aviso de `pwdExpireWarning`.
+- **Nunca ha cambiado la contraseña:** no hay ningún cambio de contraseña registrado desde que se creó la cuenta.
 
 El aviso se muestra en cada inicio de sesión mientras se cumpla alguno de esos motivos, y sólo en sesiones gráficas: en una consola de texto no hay navegador que abrir.
 
@@ -72,15 +74,34 @@ Se configura desde `agent_config.json`:
 | `password_prompt_enabled` | `false` | Activa el aviso. **Viene desactivado**: hay que habilitarlo expresamente en los equipos donde se quiera. |
 | `password_prompt_url` | `https://educontrol.santaeulalia/change-password` | Dirección que se abre en el navegador. |
 | `password_prompt_delay` | `15` | Segundos de espera desde el inicio de sesión antes de abrir el navegador, para dar tiempo a que termine de arrancar el escritorio. |
-| `password_prompt_reasons` | los tres a `true` | Permite elegir qué motivos abren el navegador: `must_change`, `expired` y `expiring_soon`. Indicar sólo uno no desactiva los demás; para desactivar un motivo hay que ponerlo a `false` expresamente. |
+| `password_prompt_reasons` | los cinco a `true` | Permite elegir qué motivos abren el navegador: `locked`, `must_change`, `expired`, `expiring_soon` y `never_changed`. Indicar sólo uno no desactiva los demás; para desactivar un motivo hay que ponerlo a `false` expresamente. |
+
+Ejemplo completo, con el aviso activado y los cinco motivos habilitados:
+
+```json
+{
+  "password_prompt_enabled": true,
+  "password_prompt_url": "https://educontrol.santaeulalia/change-password",
+  "password_prompt_delay": 15,
+  "password_prompt_reasons": {
+    "locked": true,
+    "must_change": true,
+    "expired": true,
+    "expiring_soon": true,
+    "never_changed": true
+  }
+}
+```
 
 Por ejemplo, para avisar sólo cuando la contraseña ya sea inservible, sin molestar a quien todavía tiene margen:
 
 ```json
 "password_prompt_reasons": {
+  "locked": true,
   "must_change": true,
   "expired": true,
-  "expiring_soon": false
+  "expiring_soon": false,
+  "never_changed": false
 }
 ```
 
