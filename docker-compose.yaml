@@ -43,11 +43,12 @@ services:
     volumes:
       - ./backend/staticfiles:/app/backend/staticfiles
       - ./backend/media:/app/backend/media
+      - ./backend/import_uploads:/app/backend/import_uploads
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
-      SECURE_SSL_REDIRECT: "False" # Handled by Nginx but good to be explicit, usually False behind proxy unless configured
+      SECURE_SSL_REDIRECT: "False"
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
       DJANGO_DEBUG: ${DJANGO_DEBUG}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -58,10 +59,6 @@ services:
       REDIS_URL: ${REDIS_URL}
       AUTH_LDAP_SERVER_URI: ${AUTH_LDAP_SERVER}
       AUTH_LDAP_BIND_PASSWORD: ${AUTH_LDAP_PASSWORD}
-      EMAIL_BACKEND: ${EMAIL_BACKEND}
-      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
-      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
     depends_on:
       db:
         condition: service_healthy
@@ -69,12 +66,6 @@ services:
         condition: service_healthy
     networks:
       - educontrol-network
-    healthcheck:
-      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(2); s.connect(('localhost', 8000)); s.close()"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 60s
 
   frontend:
     container_name: educontrol_frontend
@@ -82,6 +73,9 @@ services:
     restart: always
     ports:
       - "${EDUCONTROL_PORT}:443"
+      - "8443:8443"
+    environment:
+      MCP_CLIENT_FIXED_IP: ${MCP_CLIENT_FIXED_IP:-}
     volumes:
       - ./frontend/staticfiles:/static_files
       - ./backend/media:/media_files
@@ -92,11 +86,28 @@ services:
     networks:
       - educontrol-network
 
+  mcp_server:
+    container_name: educontrol_mcp_server
+    image: manumora/educontrol-mcp-server:latest
+    restart: always
+    environment:
+      EDUCONTROL_WS_BASE_URL: ws://backend:8000
+      EDUCONTROL_API_BASE_URL: http://backend:8000/api
+      EDUCONTROL_API_TOKEN: ${EDUCONTROL_API_TOKEN}
+      EDUCONTROL_MCP_GATEWAY_TOKEN: ${EDUCONTROL_MCP_GATEWAY_TOKEN}
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - educontrol-network
+
   celery_worker:
     container_name: educontrol_celery_worker
     image: manumora/educontrol-backend:latest
     restart: always
     network_mode: host
+    volumes:
+      - ./backend/import_uploads:/app/backend/import_uploads
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
@@ -112,18 +123,14 @@ services:
       REDIS_URL: ${REDIS_URL_LOCAL:-redis://127.0.0.1:6379/0}
       AUTH_LDAP_SERVER_URI: ${AUTH_LDAP_SERVER}
       AUTH_LDAP_BIND_PASSWORD: ${AUTH_LDAP_PASSWORD}
-      EMAIL_BACKEND: ${EMAIL_BACKEND}
-      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
-      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
-      ADMIN_EMAIL: ${ADMIN_EMAIL}
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
       backend:
-        condition: service_healthy
-    command: ["celery", "-A", "backend", "worker", "-l", "info", "-n", "worker@%h"]
+        condition: service_started
+    command: ["celery", "-A", "backend", "worker", "-l", "info", "-n", "worker@%h", "--concurrency=4"]
 
   celery_beat:
     container_name: educontrol_celery_beat
@@ -150,7 +157,7 @@ services:
       redis:
         condition: service_healthy
       backend:
-        condition: service_healthy
+        condition: service_started
     command: ["celery", "-A", "backend", "beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
 
 networks:
