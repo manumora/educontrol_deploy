@@ -10,5 +10,6 @@
   "ssl_enabled": true,
   "verify_ssl": false,
   "vnc_enabled": true,
-  "puppet_check_enabled": true
+  "puppet_check_enabled": true,
+  "printing": true
 }
