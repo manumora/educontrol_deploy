@@ -382,13 +382,160 @@ if [ ! -f ".env" ]; then
 
     log_success "Archivo .env configurado correctamente"
 else
-    log_warning "El archivo .env ya existe. Se omite la configuración."
+    log_warning "El archivo .env ya existe. Se conserva su configuración."
     log_info "Si deseas reconfigurar, elimina el archivo .env y ejecuta el script nuevamente."
     # Cargar SERVER_IP desde el .env existente para el resumen final
     SERVER_IP=$(grep '^SSL_IP=' .env | cut -d'=' -f2- | tr -d '\r')
     if [ -z "$SERVER_IP" ]; then
         SERVER_IP=$(hostname -I | awk '{print $1}')
     fi
+fi
+
+# ========================================
+# 7.1. AÑADIR VARIABLES NUEVAS AL .env
+# ========================================
+# Añadir al .env las variables nuevas que aún no tenga, sin tocar las existentes.
+# Uso: ensure_env_var NOMBRE VALOR "comentario" (el comentario puede tener varias líneas)
+ensure_env_var() {
+    local name=$1 value=$2 comment=$3
+    if grep -q "^[#[:space:]]*${name}=" .env; then
+        return
+    fi
+    # Asegurar salto de línea final antes de añadir
+    [ -n "$(tail -c1 .env)" ] && echo "" >> .env
+    {
+        echo ""
+        [ -n "$comment" ] && echo "$comment" | sed 's/^/# /'
+        echo "${name}=${value}"
+    } >> .env
+    log_success "Variable ${name} añadida al .env"
+    ENV_VARS_ADDED=true
+}
+
+ENV_VARS_ADDED=false
+ensure_env_var "EDUCONTROL_PRINT_TOKEN" "" \
+"Impresión centralizada: token del usuario de servicio educontrol-print.
+Se genera en EduControl: Configuración -> Tokens API -> Crear token del usuario educontrol-print."
+
+# Valores que genera el propio script: se rellenan si faltan o están vacíos y no se tocan
+# si ya tienen valor. No cuentan para el aviso final porque no hay que completarlos.
+# Uso: ensure_env_generated NOMBRE VALOR "comentario"
+ensure_env_generated() {
+    local name=$1 value=$2 comment=$3 added_before=$ENV_VARS_ADDED
+    if grep -qE "^${name}=(\"\")?[[:space:]]*$" .env; then
+        sed -i -E "s|^${name}=.*|${name}=${value}|" .env
+        log_success "Variable ${name} generada en el .env"
+    else
+        ensure_env_var "$name" "$value" "$comment"
+    fi
+    ENV_VARS_ADDED=$added_before
+}
+
+ensure_env_generated "CUPS_CONTROL_TOKEN" "$(openssl rand -hex 32)" \
+"Impresión centralizada: secreto compartido entre el backend y cups-control.
+Se genera automáticamente; no hace falta conocerlo ni cambiarlo."
+
+ensure_env_generated "CUPS_ADMIN_USER" "admin" \
+"Impresión centralizada: usuario de la interfaz web de CUPS (https://servidor:631/admin)."
+
+ensure_env_generated "CUPS_ADMIN_PASSWORD" "$(generate_password 20)" \
+"Contraseña del usuario anterior (generada por el script de instalación)."
+
+# Servidor de impresión: el contenedor cups solo arranca con el perfil "printing".
+
+# Procesos que escuchan en un puerto TCP (vacío si está libre).
+port_listeners() {
+    local lines names
+    lines=$(ss -ltnpH "sport = :$1" 2>/dev/null)
+    [ -z "$lines" ] && return 0
+    names=$(echo "$lines" | grep -o 'users:(("[^"]*"' | sed 's/users:(("//; s/"$//' | sort -u | tr '\n' ' ')
+    echo "${names:-proceso desconocido}"
+}
+
+# El contenedor cups usa la red del servidor: necesita libres el 631 (IPP) y el 6310
+# (cups-control). Devuelve 0 si se pueden usar.
+check_print_ports() {
+    # Si ya corre el contenedor de EduControl, los puertos son suyos.
+    if docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "educontrol_cups"; then
+        return 0
+    fi
+    local busy_631 busy_6310
+    busy_631=$(port_listeners 631)
+    busy_6310=$(port_listeners 6310)
+
+    if [ -n "$busy_6310" ]; then
+        log_error "El puerto 6310 está ocupado por: $busy_6310"
+        log_error "El servidor de impresión de EduControl lo necesita. Libéralo y vuelve a ejecutar el script."
+        return 1
+    fi
+    [ -z "$busy_631" ] && return 0
+
+    log_warning "El puerto 631 (IPP) está ocupado por: $busy_631"
+    if ! echo "$busy_631" | grep -q 'cupsd\|systemd' \
+            && ! systemctl is-active -q cups.service cups.socket 2>/dev/null; then
+        log_error "No es el servicio CUPS del sistema. Libera el puerto 631 y vuelve a ejecutar el script."
+        return 1
+    fi
+    echo ""
+    echo "Este servidor tiene instalado su propio servicio CUPS, que ocupa el puerto 631."
+    echo "El servidor de impresión de EduControl necesita ese puerto: para usarlo hay que"
+    echo "deshabilitar el CUPS del sistema (EduControl lo sustituye). Este servidor dejará de"
+    echo "tener sus propias impresoras locales."
+    read -rp "¿Deshabilitar el servicio CUPS del sistema? [s/N]: " DISABLE_HOST_CUPS
+    if [[ ! "$DISABLE_HOST_CUPS" =~ ^[sSyY] ]]; then
+        log_warning "Sin deshabilitar el CUPS del sistema el servidor de impresión de EduControl no puede arrancar."
+        return 1
+    fi
+    # También cups.socket y cups.path: systemd volvería a arrancar cupsd al conectarse alguien al 631.
+    systemctl disable --now cups.socket cups.path cups.service cups-browsed 2>/dev/null || true
+    systemctl mask cups.socket cups.path cups.service cups-browsed 2>/dev/null || true
+    sleep 1
+    busy_631=$(port_listeners 631)
+    if [ -n "$busy_631" ]; then
+        log_error "El puerto 631 sigue ocupado por: $busy_631"
+        return 1
+    fi
+    log_success "Servicio CUPS del sistema deshabilitado; el puerto 631 está libre"
+    return 0
+}
+
+PROFILES_LINE=$(grep -E '^COMPOSE_PROFILES=' .env | tail -n1 || true)
+if echo "$PROFILES_LINE" | grep -q 'printing'; then
+    log_success "Servidor de impresión ya activado (COMPOSE_PROFILES)"
+else
+    echo ""
+    read -rp "¿Quieres activar el servidor de impresión centralizada? [s/N]: " ENABLE_PRINTING
+    if [[ "$ENABLE_PRINTING" =~ ^[sSyY] ]] && ! check_print_ports; then
+        ENABLE_PRINTING=n
+        log_warning "No se activa el servidor de impresión. Cuando resuelvas lo anterior, vuelve a ejecutar el script."
+    fi
+    if [[ "$ENABLE_PRINTING" =~ ^[sSyY] ]]; then
+        if [ -n "$PROFILES_LINE" ]; then
+            # Ya hay otros perfiles: se añade printing a la lista
+            sed -i -E 's/^COMPOSE_PROFILES="?([^"]*)"?[[:space:]]*$/COMPOSE_PROFILES=\1,printing/' .env
+        elif grep -qE '^#[[:space:]]*COMPOSE_PROFILES=' .env; then
+            sed -i -E 's/^#[[:space:]]*COMPOSE_PROFILES=.*/COMPOSE_PROFILES=printing/' .env
+        else
+            ensure_env_var "COMPOSE_PROFILES" "printing" \
+"Impresión centralizada: arranca también el contenedor cups. Coméntala para desactivarlo."
+        fi
+        log_success "Servidor de impresión activado (COMPOSE_PROFILES=printing)"
+        log_info "Recuerda crear el token de educontrol-print y ponerlo en EDUCONTROL_PRINT_TOKEN"
+    elif ! grep -qE '^#[[:space:]]*COMPOSE_PROFILES=' .env && [ -z "$PROFILES_LINE" ]; then
+        [ -n "$(tail -c1 .env)" ] && echo "" >> .env
+        {
+            echo ""
+            echo "# Impresión centralizada: descomenta la línea siguiente para arrancar el contenedor cups."
+            echo "#COMPOSE_PROFILES=printing"
+        } >> .env
+        log_info "Servidor de impresión no activado (COMPOSE_PROFILES=printing queda comentada en el .env)"
+    else
+        log_info "Servidor de impresión no activado"
+    fi
+fi
+
+if [ "$ENV_VARS_ADDED" = true ]; then
+    log_warning "Se han añadido variables nuevas al .env. Revisa y completa sus valores en ${INSTALL_DIR}/.env"
 fi
 
 # ========================================
