@@ -27,7 +27,7 @@
 class educontrol_agent () {
 
   # Versión del agente
-  $version = '1.0.49'
+  $version = '1.0.50'
 
   # Asegurar que el directorio existe
   file { '/etc/educontrol':
@@ -83,5 +83,31 @@ class educontrol_agent () {
     command => '/usr/bin/echo "educontrol-agent" >> /etc/pkgsync/mayhave',
     onlyif  => '/usr/bin/test -f /etc/pkgsync/mayhave',
     unless  => '/usr/bin/grep -Fxq "educontrol-agent" /etc/pkgsync/mayhave',
+  }
+
+  # Paquetes que solo tienen sentido con escritorio, para no llevar librerías gráficas a los
+  # servidores: x11vnc (escritorio remoto) y los avisos en pantalla (p. ej. trabajo de impresión
+  # denegado).
+  $desktop_check = '/usr/bin/test -d /usr/share/xsessions -o -d /usr/share/wayland-sessions'
+
+  $desktop_packages = ['x11vnc', 'zenity', 'libnotify-bin']
+  $desktop_list = join($desktop_packages, ' ')
+
+  exec { 'install-educontrol-desktop-tools':
+    command  => "/usr/bin/apt-get install -y ${desktop_list}",
+    onlyif   => $desktop_check,
+    unless   => "/usr/bin/dpkg-query -W -f='\${Status}\n' ${desktop_list} 2>/dev/null | /bin/grep -c '^install ok installed$' | /bin/grep -qx ${length($desktop_packages)}",
+    provider => shell,
+    require  => Exec['install-educontrol-agent'],
+  }
+
+  # pkgsync no debe desinstalarlos.
+  $desktop_packages.each |String $pkg| {
+    exec { "insertar_${pkg}":
+      command  => "/usr/bin/echo '${pkg}' >> /etc/pkgsync/mayhave",
+      onlyif   => "/usr/bin/test -f /etc/pkgsync/mayhave && ${desktop_check}",
+      unless   => "/usr/bin/grep -Fxq '${pkg}' /etc/pkgsync/mayhave",
+      provider => shell,
+    }
   }
 }
