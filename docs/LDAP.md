@@ -53,6 +53,8 @@ Opciones disponibles al lanzar la importación:
 - **Enviar por webhook:** notifica los datos de cada profesor creado al webhook configurado, para integrarlo con sistemas externos.
 - **Generar correo @educarex.es:** compone la dirección institucional cuando el fichero de origen no la incluye.
 
+Cada profesor se asigna al **departamento** que indica el fichero de Rayuela. Si el departamento todavía no existe en el directorio, se crea automáticamente como grupo de tipo departamento; y si un profesor que ya existía figura en otro departamento distinto al del fichero, se le mueve al nuevo. Los cursos y grupos a los que pertenezca el profesor no se modifican, y los profesores cuyo registro no traiga departamento conservan el que tuvieran asignado. El resumen de la importación indica los departamentos creados y los cambios de departamento aparecen en el histórico como modificación del profesor.
+
 A los profesores importados se les aplica además la [política de contraseñas](./PASSWORD_POLICY.md) del centro, de forma que se les exijan los mismos requisitos de caducidad y complejidad que al resto de docentes.
 
 ### 2. Alumnos

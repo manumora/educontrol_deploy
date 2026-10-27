@@ -29,6 +29,8 @@ El sistema se estructura en varios módulos fundamentales. A continuación se in
 - **[Automatizaciones](./docs/AUTOMATIONS.md)**: Se pueden ordenar a los agentes a ejecutar comandos y scripts en los equipos remotos.
 - **[Documentos](./docs/REPORTS.md)**: Herramienta para la generación de documentos.
 - **[Mailing](./docs/MAILING.md)**: Configuración del servidor de correo y envío de correos masivos a los usuarios del centro.
+- **[Impresión centralizada](./docs/PRINTING.md)**: Servidor CUPS propio para controlar la cola, aplicar políticas de impresión por equipo y consultar el consumo por impresora, equipo, usuario o área.
+- **[Cartelería digital](./docs/SIGNAGE.md)**: Programación de las webs que se muestran en las TV del centro, cada una con su pantalla (Raspberry Pi en modo kiosk), con rotación continua y bloques horarios fijos.
 - **[Servidor MCP](./docs/MCP.md)**: Servidor Model Context Protocol que permite a agentes LLM interactuar con EduControl: ejecutar comandos en equipos remotos y consultar usuarios, inventario y auditoría.
 
 ## Instalación del Servidor EduControl
