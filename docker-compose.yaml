@@ -59,6 +59,8 @@ services:
       REDIS_URL: ${REDIS_URL}
       AUTH_LDAP_SERVER_URI: ${AUTH_LDAP_SERVER}
       AUTH_LDAP_BIND_PASSWORD: ${AUTH_LDAP_PASSWORD}
+      # Módulo de impresión centralizada (opcional, ver servicio `cups`).
+      CUPS_CONTROL_TOKEN: ${CUPS_CONTROL_TOKEN:-}
     depends_on:
       db:
         condition: service_healthy
@@ -123,6 +125,9 @@ services:
       REDIS_URL: ${REDIS_URL_LOCAL:-redis://127.0.0.1:6379/0}
       AUTH_LDAP_SERVER_URI: ${AUTH_LDAP_SERVER}
       AUTH_LDAP_BIND_PASSWORD: ${AUTH_LDAP_PASSWORD}
+      # Conciliación periódica de estados de impresión (red del host: cups-control en loopback).
+      CUPS_CONTROL_URL: http://127.0.0.1:6310
+      CUPS_CONTROL_TOKEN: ${CUPS_CONTROL_TOKEN:-}
     depends_on:
       db:
         condition: service_healthy
@@ -159,6 +164,32 @@ services:
       backend:
         condition: service_started
     command: ["celery", "-A", "backend", "beat", "-l", "info", "--scheduler", "django_celery_beat.schedulers:DatabaseScheduler"]
+
+  # Servidor CUPS de impresión centralizada. Opcional: solo arranca con
+  # `docker compose --profile printing up -d`. Usa la red del host para escuchar
+  # en el 631 y ver la IP real de cada cliente.
+  cups:
+    container_name: educontrol_cups
+    image: manumora/educontrol-cups:latest
+    profiles: ["printing"]
+    restart: always
+    network_mode: host
+    volumes:
+      - ./cups_data/etc:/etc/cups
+      - ./cups_data/spool:/var/spool/cups
+      - ./cups_data/log:/var/log/cups
+    environment:
+      # La API se llama por loopback: https://127.0.0.1:$EDUCONTROL_PORT/api
+      EDUCONTROL_PORT: ${EDUCONTROL_PORT:-}
+      # Token del usuario educontrol-print (Configuración > Tokens API).
+      EDUCONTROL_PRINT_TOKEN: ${EDUCONTROL_PRINT_TOKEN:-}
+      CUPS_CONTROL_TOKEN: ${CUPS_CONTROL_TOKEN:-}
+      # Usuario de la interfaz web de CUPS (/admin); el script de instalación genera la contraseña.
+      CUPS_ADMIN_USER: ${CUPS_ADMIN_USER:-}
+      CUPS_ADMIN_PASSWORD: ${CUPS_ADMIN_PASSWORD:-}
+    depends_on:
+      backend:
+        condition: service_started
 
 networks:
   educontrol-network:
