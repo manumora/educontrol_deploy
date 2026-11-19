@@ -4,7 +4,7 @@ EduControl puede centralizar la impresión del centro en un servidor CUPS propio
 
 El módulo es **opcional y no destructivo**:
 
-- El contenedor `cups` solo arranca si se activa el perfil `printing` de Docker Compose.
+- El contenedor `cups` solo arranca si se activa el servidor de impresión. El script de instalación pregunta si se quiere activar y, si se responde que sí, añade `COMPOSE_PROFILES=printing` al `.env` (ver [Arranque](#3-arranque)).
 - Mientras el módulo esté desactivado en *Configuración → Impresión*, la API responde «permitido» sin registrar nada.
 - Los agentes no tocan la configuración de impresión de los equipos salvo que se active expresamente en cada uno (ver [Agente EduControl](#agente-educontrol-bloquear-la-impresión-directa)).
 
@@ -35,7 +35,7 @@ Junto a `cupsd` corre un pequeño servicio, **cups-control**, por el que el back
 1. Entra en *Configuración → Tokens API* y genera un token para el usuario `educontrol-print`.
 2. Cópialo en la variable `EDUCONTROL_PRINT_TOKEN` del `.env`.
 
-Ese token permite registrar trabajos de impresión en nombre del servidor CUPS. Trátalo como una contraseña. Si se ha expuesto , regenéralo y actualiza el `.env`.
+Ese token permite registrar trabajos de impresión en nombre del servidor CUPS. Trátalo como una contraseña. Si se ha expuesto, regenéralo y actualiza el `.env`.
 
 ### 2. Variables de entorno
 
@@ -43,20 +43,39 @@ Se definen en el `.env` de `/var/docker/educontrol`, junto al `docker-compose.ya
 
 | Variable | Descripción |
 | --- | --- |
-| `COMPOSE_PROFILES=printing` | Hace que `docker-compose up -d` arranque también el contenedor `cups`. El script de instalación pregunta si se quiere activar; si no, la deja comentada. |
-| `EDUCONTROL_PRINT_TOKEN` | Token del usuario `educontrol-print` (paso anterior). |
+| `COMPOSE_PROFILES=printing` | Hace que `docker-compose up -d` arranque también el contenedor `cups`. La pone el script de instalación si se activa el servidor de impresión; si no, la deja comentada (ver [Arranque](#3-arranque)). |
+| `EDUCONTROL_PRINT_TOKEN` | Token del usuario `educontrol-print` (paso anterior). El script de instalación crea la variable vacía. |
+| `CUPS_CONTROL_TOKEN` | Secreto compartido entre el backend y cups-control. Lo genera el script de instalación; no hace falta tocarlo. |
 | `CUPS_ADMIN_USER` / `CUPS_ADMIN_PASSWORD` | Usuario para entrar en la interfaz web de CUPS (`https://<servidor>:631/admin`). El script de instalación pone `admin` y genera la contraseña: consúltala en el `.env`. |
 
 ### 3. Arranque
 
-Con las variables en el `.env`:
+**Con el script de instalación (recomendado).** Al ejecutarlo, tanto en una instalación nueva como en una actualización, pregunta:
+
+```
+¿Quieres activar el servidor de impresión centralizada? [s/N]:
+```
+
+Si se responde que sí:
+
+1. Comprueba que están libres los puertos que necesita el contenedor: 631 (IPP) y 6310 (cups-control). Si el 631 lo ocupa el CUPS del propio servidor, ofrece deshabilitarlo (ver [El puerto 631 ya está en uso](#el-puerto-631-ya-está-en-uso)). Si algún puerto sigue ocupado, no activa el servidor de impresión y hay que volver a ejecutar el script cuando esté resuelto.
+2. Añade `COMPOSE_PROFILES=printing` al `.env`. Si ya había otros perfiles, añade `printing` a la lista.
+3. Al final, al arrancar los contenedores, arranca también `cups`.
+
+Si se responde que no (es lo que pasa si solo se pulsa Intro), deja en el `.env` la línea `#COMPOSE_PROFILES=printing` comentada y `cups` no arranca. Cuando el servidor de impresión ya está activado, el script no vuelve a preguntar.
+
+**A mano.** Descomenta o añade `COMPOSE_PROFILES=printing` en el `.env` y arranca los contenedores:
 
 ```bash
 cd /var/docker/educontrol
 docker-compose up -d
 ```
 
-`docker-compose up -d` recrea solo los contenedores cuya imagen o configuración ha cambiado (variables incluidas) y arranca los nuevos, como `cups`. 
+`docker-compose up -d` recrea solo los contenedores cuya imagen o configuración ha cambiado (variables incluidas) y arranca los nuevos, como `cups`. Para arrancarlo una sola vez sin tocar el `.env`, usa `docker-compose --profile printing up -d`. Así no se hace la comprobación de puertos del script.
+
+Para desactivarlo, vuelve a comentar la línea del `.env` y ejecuta `docker-compose stop cups`.
+
+Si `EDUCONTROL_PRINT_TOKEN` estaba vacío al arrancar (lo normal en una instalación nueva, porque el token se genera desde la web), rellénalo después y vuelve a ejecutar `docker-compose up -d` para que `cups` lo coja.
 
 El contenedor `cups` usa la red del propio servidor para escuchar en el puerto 631 y ver la IP real de cada cliente. Para comprobar que escucha:
 
@@ -203,6 +222,8 @@ agente los copian al crearse, así que si cambias estos valores hay que volver a
 driver) no se aplican, porque no hay filtro que los use: manda el driver del cliente.
 
 Al guardar, la cola se crea o actualiza en CUPS. Si la sincronización falla, la impresora se guarda igualmente y la columna **CUPS** muestra el error. El botón de sincronizar de cada fila lo reintenta.
+
+**Imprimir página de prueba** (icono de impresora en la fila, o botón en el diálogo de edición) envía a la cola la página de prueba de CUPS, con la configuración guardada. Aparece en *Trabajos* como cualquier otro trabajo, pero no pasa por las políticas: se imprime aunque estén aplicándose y deneguen esa impresora.
 
 La columna **En directo** muestra el estado actual de cada cola: Libre, Imprimiendo (con el número de trabajos), Atascada o Detenida. Si CUPS la ha detenido, aparece la acción **Reanudar** en la fila.
 

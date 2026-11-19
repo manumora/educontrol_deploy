@@ -21,7 +21,8 @@ El script realizará automáticamente las siguientes acciones:
    - Detecta automáticamente la IP del servidor EduControl
    - Pide la IP del servidor LDAP
    - Pide la contraseña del servidor LDAP
-5. **Genera contraseñas seguras** para PostgreSQL y Django
+   - Pregunta si se quiere activar el servidor de impresión centralizada (opcional, ver [Impresión centralizada](./PRINTING.md#3-arranque))
+5. **Genera contraseñas seguras** para PostgreSQL, Django y la impresión centralizada
 6. **Crea los directorios** necesarios para los volúmenes de Docker
 7. **Descarga e inicia los contenedores** de Docker
 
