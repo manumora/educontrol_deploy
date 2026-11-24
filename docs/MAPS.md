@@ -27,4 +27,8 @@ Desde la propia interfaz del mapa, el administrador puede interactuar directamen
 - **Historial de Sesiones:** Consultar el histórico de usuarios que han utilizado un equipo específico.
 - **Acciones Masivas:** EduControl permite realizar operaciones y lanzar comandos de forma masiva a grupos de equipos seleccionados directamente desde la vista de mapa, optimizando las tareas de mantenimiento por aulas o zonas.
 
+## Mapas y Panel de Aula
+
+Los puntos de tipo **Grupo de dispositivos** y **Dispositivo** del mapa son también los que deciden qué equipos ve cada profesor en el menú Aula. Consulta cómo configurarlos en [Panel de Aula](./CLASSROOM.md).
+
 [Volver](../README.md)

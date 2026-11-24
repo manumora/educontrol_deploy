@@ -24,6 +24,7 @@ El sistema se estructura en varios módulos fundamentales. A continuación se in
 - **[LDAP](./docs/LDAP.md)**: Módulo de integración con el servidor LDAP para la gestión de usuarios y dispositivos.
 - **[Políticas de Contraseñas](./docs/PASSWORD_POLICY.md)**: Configuración y aplicación de la política de contraseñas del directorio, así como la consulta del estado de cada cuenta.
 - **[Cambio de Contraseña](./docs/CHANGE_PASSWORD.md)**: Web pública, sin autenticación, para que profesores y alumnos cambien o recuperen su contraseña.
+- **[Panel de Aula](./docs/CLASSROOM.md)**: Acceso del profesorado con su usuario de LDAP para ver y controlar únicamente los equipos del aula en la que tiene la sesión abierta.
 - **[Mapas](./docs/MAPS.md)**: Interfaz para la representación visual y localización física de los equipos sobre los planos del centro educativo.
 - **[Servidor](./docs/SERVER.md)**: Control y mantenimiento del servidor principal del centro educativo mediante diversas operaciones automatizadas.
 - **[Automatizaciones](./docs/AUTOMATIONS.md)**: Se pueden ordenar a los agentes a ejecutar comandos y scripts en los equipos remotos.
