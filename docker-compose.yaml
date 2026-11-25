@@ -75,7 +75,8 @@ services:
     restart: always
     ports:
       - "${EDUCONTROL_PORT}:443"
-      - "8443:8443"
+      # Gateway MCP remoto: Nginx escucha en el 8443 del contenedor, publicado en el 8444 del host
+      - "8444:8443"
     environment:
       MCP_CLIENT_FIXED_IP: ${MCP_CLIENT_FIXED_IP:-}
     volumes:
