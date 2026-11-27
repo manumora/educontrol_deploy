@@ -64,13 +64,13 @@ docker compose up -d
 
 ### 5. Configurar tu agente IA
 
-El agente se conecta a `https://<host>:8443/mcp` con el transporte Streamable HTTP y la cabecera `Authorization: Bearer <EDUCONTROL_MCP_GATEWAY_TOKEN>`. Por ejemplo, en [opencode](https://opencode.ai/):
+El agente se conecta a `https://<host>:8444/mcp` con el transporte Streamable HTTP y la cabecera `Authorization: Bearer <EDUCONTROL_MCP_GATEWAY_TOKEN>`. Por ejemplo, en [opencode](https://opencode.ai/):
 
 ```json
 "mcp": {
   "educontrol": {
     "type": "remote",
-    "url": "https://<host>:8443/mcp",
+    "url": "https://<host>:8444/mcp",
     "headers": {
       "Authorization": "Bearer <EDUCONTROL_MCP_GATEWAY_TOKEN>"
     }
@@ -94,9 +94,9 @@ Cada llamada a herramienta y cada comando ejecutado se registra en `logs/audit.l
 
 ## Detalle del acceso mediante el gateway MCP
 
-El servidor MCP se despliega como un contenedor más de `docker-compose.yaml` (`mcp_server`), sin ningún puerto propio expuesto: solo es accesible a través de Nginx, en el puerto **8443**, con cuatro capas de seguridad independientes:
+El servidor MCP se despliega como un contenedor más de `docker-compose.yaml` (`mcp_server`), sin ningún puerto propio expuesto: solo es accesible a través de Nginx, en el puerto **8444** del servidor, con cuatro capas de seguridad independientes:
 
-1. **TLS** — bloque Nginx en el puerto 8443, reutilizando el mismo certificado que el sitio principal.
+1. **TLS** — bloque Nginx propio (escucha en el 8443 dentro del contenedor `frontend`, publicado en el 8444 del servidor), reutilizando el mismo certificado que el sitio principal.
 2. **Lista blanca de IPs** (opcional) — ver más abajo.
 3. **Token de gateway** — `EDUCONTROL_MCP_GATEWAY_TOKEN`; el servidor MCP lo comprueba en cada petición, independientemente de Nginx.
 4. **Rate limiting** — 60 peticiones/minuto con burst de 10, a nivel de Nginx.
@@ -105,7 +105,7 @@ Esto se aplica igual estés conectando el agente IA desde el propio servidor o d
 
 ### Lista blanca de IPs (opcional)
 
-La variable `MCP_CLIENT_FIXED_IP`, en el `.env` raíz, restringe qué direcciones pueden llegar al puerto 8443 (admite varias, separadas por comas o espacios):
+La variable `MCP_CLIENT_FIXED_IP`, en el `.env` raíz, restringe qué direcciones pueden llegar al puerto 8444 (admite varias, separadas por comas o espacios):
 
 ```bash
 MCP_CLIENT_FIXED_IP=<IP-fija-del-cliente-MCP>
@@ -117,7 +117,7 @@ Si se deja vacía o sin definir, se permite cualquier IP y el token de gateway p
 
 ```
 Cliente MCP (IP fija)
-    │  HTTPS, puerto 8443
+    │  HTTPS, puerto 8444
     ▼
 ┌─────────────── Nginx (contenedor frontend) ─────────────────┐
 │  1. TLS (certificado autofirmado, igual que el sitio)       │
@@ -154,13 +154,13 @@ Además de la lista blanca de Nginx, es recomendable añadir una regla equivalen
 
 ```bash
 # ufw
-sudo ufw allow from <MCP_CLIENT_FIXED_IP> to any port 8443 proto tcp
-sudo ufw deny 8443/tcp
+sudo ufw allow from <MCP_CLIENT_FIXED_IP> to any port 8444 proto tcp
+sudo ufw deny 8444/tcp
 sudo ufw status numbered   # comprobar que la regla allow está ANTES que la deny
 
 # iptables
-sudo iptables -A INPUT -p tcp -s <MCP_CLIENT_FIXED_IP> --dport 8443 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 8443 -j DROP
+sudo iptables -A INPUT -p tcp -s <MCP_CLIENT_FIXED_IP> --dport 8444 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 8444 -j DROP
 ```
 
 ## Herramientas disponibles

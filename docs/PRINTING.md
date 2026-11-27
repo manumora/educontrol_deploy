@@ -130,6 +130,27 @@ Los backends reales de CUPS aparecen en `ps` con la URI de la impresora como nom
 
 Además, *Tiempo máximo por trabajo* (*Configuración → Impresión*, 30 minutos por defecto) hace que CUPS cancele por sí mismo cualquier trabajo que no termine en ese tiempo, para que un atasco nunca bloquee la cola indefinidamente.
 
+### «File "/usr/lib/cups/filter/hpps" not available»
+
+Los trabajos de una impresora HP se quedan detenidos y en `/var/log/cups/error_log` aparece:
+
+```
+File "/usr/lib/cups/filter/hpps" not available: No such file or directory
+```
+
+Ocurre con los PPD PostScript de HP, por ejemplo el de la *HP Officejet Pro X476*: usan el filtro `hpps`, que viene en el paquete `printer-driver-postscript-hp`. La imagen del contenedor lo incluye a partir de esta versión, junto con esos PPD, que aparecen en la lista de drivers como *HP … Postscript (recommended)*. Basta con actualizar la imagen de `educontrol_cups`.
+
+Si todavía no puedes actualizarla, se puede instalar a mano en el contenedor:
+
+```bash
+docker exec educontrol_cups apt-get update
+docker exec educontrol_cups apt-get install -y --no-install-recommends printer-driver-postscript-hp
+docker exec educontrol_cups ls -l /usr/lib/cups/filter/hpps
+docker restart educontrol_cups
+```
+
+Lo instalado a mano se pierde cuando se vuelve a crear el contenedor (al actualizar la imagen o con `docker compose up` tras un cambio), así que es solo un apaño hasta tener la imagen nueva. No hace falta instalar `hplip` completo: el filtro `hpps` está en `printer-driver-postscript-hp`.
+
 ## Configuración → Impresión
 
 **Estado del módulo**

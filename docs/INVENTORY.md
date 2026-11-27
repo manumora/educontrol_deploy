@@ -47,4 +47,15 @@ Al pasar el ratón por encima se despliega el detalle completo (carga, estado, a
 
 Cuando la salud de la batería se degrada aparece además un **icono de aviso** junto al indicador, cuyo tooltip explica el problema concreto detectado: pérdida de capacidad respecto a la original, exceso de ciclos de carga o una advertencia del propio sistema operativo. Así se identifican de un vistazo los portátiles cuya batería conviene sustituir.
 
+## Alumno Asignado en la Pantalla de Inicio
+
+Si un equipo tiene una **asignación activa**, sea de aula o un préstamo (Inventario › Asignaciones), su pantalla de inicio de sesión muestra una tarjeta con la **foto, el nombre y los apellidos** de la persona asignada. Así se ve de un vistazo a quién pertenece cada portátil. Si hay varias asignaciones activas, se muestra la más reciente.
+
+- **Datos:** el nombre, los apellidos y la foto (`jpegPhoto`) se leen del LDAP. Si el LDAP no responde, se usan el nombre y los apellidos guardados en la asignación, sin foto. Si el alumno no tiene foto, se muestran sus iniciales.
+- **Cuándo se aplica:** el servidor envía el alumno al agente al crear, editar o eliminar una asignación y cada vez que el agente se conecta. Solo reenvía la foto si ha cambiado. El cambio se ve la próxima vez que aparece la pantalla de inicio (al cerrar sesión o al reiniciar); no se corta la sesión de nadie.
+- **Sin asignación:** al cerrar o eliminar la asignación, el agente borra sus ficheros y la pantalla de inicio vuelve a ser la original.
+- **Compatibilidad:** LightDM con lightdm-gtk-greeter (Xubuntu/LinEx 22.04 y 24.04). El agente necesita Pillow en su entorno.
+
+Técnicamente, el agente compone un fondo (el fondo configurado más la tarjeta) en `/var/lib/educontrol/login-screen/background.png` y lo aplica con `/usr/share/lightdm/lightdm-gtk-greeter.conf.d/90-educontrol-assigned-user.conf`, con una sección `[monitor: …]` por salida de vídeo. Se hace así porque `/etc/lightdm/lightdm-gtk-greeter.conf` se lee el último y su `background` de `[greeter]` siempre gana. Ese mismo fichero baja un poco la ventana de acceso (`position`) para que no tape la tarjeta.
+
 [Volver](../README.md)
